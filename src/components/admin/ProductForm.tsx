@@ -8,6 +8,7 @@ import {
   type ProductFormState,
 } from "@/app/admin/actions/products";
 import AdminImageField from "@/components/admin/AdminImageField";
+import AdminGalleryField from "@/components/admin/AdminGalleryField";
 import type { Category, Product } from "@/data/catalog";
 
 type Props =
@@ -185,19 +186,7 @@ export default function ProductForm(props: Props) {
         required
       />
 
-      <div>
-        <label className="mb-2 block text-[0.7rem] uppercase tracking-[0.12em] text-warm-gray">
-          Galería — una URL por línea
-        </label>
-        <textarea
-          name="gallery"
-          rows={5}
-          required
-          defaultValue={initial?.gallery.join("\n")}
-          className="w-full rounded-sm border border-charcoal/15 bg-white px-3 py-2.5 font-mono text-xs outline-none focus:border-charcoal/40"
-          placeholder={"/hero.png\n/detail.png"}
-        />
-      </div>
+      <AdminGalleryField defaultLines={initial?.gallery ?? []} />
 
       <div>
         <label className="mb-2 block text-[0.7rem] uppercase tracking-[0.12em] text-warm-gray">
