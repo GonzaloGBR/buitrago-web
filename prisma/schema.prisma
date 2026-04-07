@@ -1,0 +1,36 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model Category {
+  slug        String    @id
+  name        String
+  tagline     String
+  description String    @db.Text
+  image       String
+  products    Product[]
+}
+
+model Product {
+  id               String   @id
+  categorySlug     String
+  category         Category @relation(fields: [categorySlug], references: [slug], onDelete: Cascade)
+  name             String
+  price            String
+  wood             String
+  woodBadge        String
+  dimensions       String
+  shortDescription String   @db.Text
+  description      String   @db.Text
+  finish           String
+  image            String
+  features         Json
+  gallery          Json
+
+  @@index([categorySlug])
+}

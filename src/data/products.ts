@@ -1,27 +1,6 @@
-export interface Product {
-  id: string;
-  name: string;
-  categorySlug: string;
-  price: string;
-  wood: string;
-  woodBadge: string;
-  dimensions: string;
-  shortDescription: string;
-  description: string;
-  finish: string;
-  features: string[];
-  image: string;
-  gallery: string[];
-}
+import type { Category, Product } from "./catalog";
 
-export interface Category {
-  slug: string;
-  name: string;
-  tagline: string;
-  description: string;
-  image: string;
-}
-
+/** Datos iniciales para `npx prisma db seed` (no uses esto en runtime; usa `@/data/catalog`). */
 export const categories: Category[] = [
   {
     slug: "mesas-de-comedor",
@@ -440,15 +419,3 @@ export const products: Product[] = [
     gallery: ["/collection-chair.png", "/collection-shelf.png", "/workshop.png", "/collection-chair.png"],
   },
 ];
-
-export function getCategory(slug: string): Category | undefined {
-  return categories.find((c) => c.slug === slug);
-}
-
-export function getProductsByCategory(slug: string): Product[] {
-  return products.filter((p) => p.categorySlug === slug);
-}
-
-export function getProduct(id: string): Product | undefined {
-  return products.find((p) => p.id === id);
-}

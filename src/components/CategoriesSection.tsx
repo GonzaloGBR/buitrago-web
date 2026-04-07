@@ -5,11 +5,15 @@ import Image from "next/image";
 import Link from "next/link";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
-import { categories } from "@/data/products";
+import type { Category } from "@/data/catalog";
 
 gsap.registerPlugin(ScrollTrigger);
 
-export default function CategoriesSection() {
+type Props = {
+  categories: Category[];
+};
+
+export default function CategoriesSection({ categories }: Props) {
   const sectionRef = useRef<HTMLElement>(null);
   const titleRef = useRef<HTMLHeadingElement>(null);
   const cardsRef = useRef<HTMLDivElement[]>([]);

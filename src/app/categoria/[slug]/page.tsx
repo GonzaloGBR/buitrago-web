@@ -1,15 +1,13 @@
 import { notFound } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
-import { categories, getCategory, getProductsByCategory } from "@/data/products";
+import { getCategory, getProductsByCategory } from "@/data/catalog";
 
-export function generateStaticParams() {
-  return categories.map((c) => ({ slug: c.slug }));
-}
+export const dynamic = "force-dynamic";
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
-  const cat = getCategory(slug);
+  const cat = await getCategory(slug);
   if (!cat) return {};
   return {
     title: `${cat.name} — Buitrago`,
@@ -19,10 +17,10 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
 
 export default async function CategoryPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
-  const category = getCategory(slug);
+  const category = await getCategory(slug);
   if (!category) notFound();
 
-  const items = getProductsByCategory(slug);
+  const items = await getProductsByCategory(slug);
 
   return (
     <main className="min-h-screen bg-cream">
