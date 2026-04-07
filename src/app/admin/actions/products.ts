@@ -5,6 +5,7 @@ import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { isValidProductId } from "@/lib/slug";
 import { assertAdmin } from "@/app/admin/actions/guard";
+import { normalizeImageSrc } from "@/lib/image-url";
 
 function parseFeatures(raw: string): string[] {
   return raw
@@ -15,7 +16,7 @@ function parseFeatures(raw: string): string[] {
 
 function parseGallery(raw: string): string[] {
   const lines = raw.split(/\r?\n/).flatMap((l) => l.split(","));
-  return lines.map((s) => s.trim()).filter(Boolean);
+  return lines.map((s) => normalizeImageSrc(s.trim())).filter(Boolean);
 }
 
 export type ProductFormState = { error?: string } | null;
@@ -35,7 +36,7 @@ export async function createProductAction(
   const shortDescription = String(formData.get("shortDescription") ?? "").trim();
   const description = String(formData.get("description") ?? "").trim();
   const finish = String(formData.get("finish") ?? "").trim();
-  const image = String(formData.get("image") ?? "").trim();
+  const image = normalizeImageSrc(String(formData.get("image") ?? "").trim());
   const features = parseFeatures(String(formData.get("features") ?? ""));
   const gallery = parseGallery(String(formData.get("gallery") ?? ""));
 
@@ -91,7 +92,7 @@ export async function updateProductAction(
   const shortDescription = String(formData.get("shortDescription") ?? "").trim();
   const description = String(formData.get("description") ?? "").trim();
   const finish = String(formData.get("finish") ?? "").trim();
-  const image = String(formData.get("image") ?? "").trim();
+  const image = normalizeImageSrc(String(formData.get("image") ?? "").trim());
   const features = parseFeatures(String(formData.get("features") ?? ""));
   const gallery = parseGallery(String(formData.get("gallery") ?? ""));
 

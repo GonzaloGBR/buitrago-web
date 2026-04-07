@@ -1,5 +1,5 @@
 import { notFound } from "next/navigation";
-import Image from "next/image";
+import CatalogImage from "@/components/CatalogImage";
 import Link from "next/link";
 import { getCategory, getProductsByCategory } from "@/data/catalog";
 
@@ -61,7 +61,7 @@ export default async function CategoryPage({ params }: { params: Promise<{ slug:
             </p>
           </div>
           <div className="relative aspect-[4/3] overflow-hidden rounded-sm bg-cream-dark">
-            <Image
+            <CatalogImage
               src={category.image}
               alt={category.name}
               fill
@@ -83,7 +83,7 @@ export default async function CategoryPage({ params }: { params: Promise<{ slug:
               className="group block no-underline"
             >
               <div className="relative aspect-[4/5] overflow-hidden bg-cream-dark">
-                <Image
+                <CatalogImage
                   src={product.image}
                   alt={product.name}
                   fill

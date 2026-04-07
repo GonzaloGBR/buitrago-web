@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import Image from "next/image";
+import CatalogImage from "@/components/CatalogImage";
 import Link from "next/link";
 import type { Category, Product } from "@/data/catalog";
 
@@ -80,7 +80,7 @@ export default function ProductDetailClient({
                     : "opacity-60 hover:opacity-100"
                 }`}
               >
-                <Image
+                <CatalogImage
                   src={src}
                   alt={`${product.name} miniatura ${i + 1}`}
                   fill
@@ -92,7 +92,7 @@ export default function ProductDetailClient({
           </div>
 
           <div className="relative aspect-[4/5] overflow-hidden bg-cream-dark">
-            <Image
+            <CatalogImage
               src={product.gallery[activeImg]}
               alt={`${product.name} — vista principal`}
               fill
@@ -117,7 +117,7 @@ export default function ProductDetailClient({
                     : "opacity-60 hover:opacity-100"
                 }`}
               >
-                <Image
+                <CatalogImage
                   src={src}
                   alt={`${product.name} miniatura ${i + 1}`}
                   fill
@@ -230,7 +230,7 @@ export default function ProductDetailClient({
                 className="group block no-underline"
               >
                 <div className="relative aspect-[4/5] overflow-hidden bg-cream-dark">
-                  <Image
+                  <CatalogImage
                     src={p.image}
                     alt={p.name}
                     fill

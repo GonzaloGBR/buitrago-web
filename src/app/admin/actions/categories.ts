@@ -5,6 +5,7 @@ import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { isValidSlug } from "@/lib/slug";
 import { assertAdmin } from "@/app/admin/actions/guard";
+import { normalizeImageSrc } from "@/lib/image-url";
 
 function parseCreateFields(formData: FormData) {
   return {
@@ -12,7 +13,7 @@ function parseCreateFields(formData: FormData) {
     name: String(formData.get("name") ?? "").trim(),
     tagline: String(formData.get("tagline") ?? "").trim(),
     description: String(formData.get("description") ?? "").trim(),
-    image: String(formData.get("image") ?? "").trim(),
+    image: normalizeImageSrc(String(formData.get("image") ?? "").trim()),
   };
 }
 
@@ -21,7 +22,7 @@ function parseUpdateFields(formData: FormData) {
     name: String(formData.get("name") ?? "").trim(),
     tagline: String(formData.get("tagline") ?? "").trim(),
     description: String(formData.get("description") ?? "").trim(),
-    image: String(formData.get("image") ?? "").trim(),
+    image: normalizeImageSrc(String(formData.get("image") ?? "").trim()),
   };
 }
 

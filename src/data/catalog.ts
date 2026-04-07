@@ -1,5 +1,6 @@
 import type { Category as DbCategory, Product as DbProduct } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
+import { normalizeGallery, normalizeImageSrc } from "@/lib/image-url";
 
 export type Category = {
   slug: string;
@@ -31,7 +32,7 @@ function mapCategory(c: DbCategory): Category {
     name: c.name,
     tagline: c.tagline,
     description: c.description,
-    image: c.image,
+    image: normalizeImageSrc(c.image) || c.image,
   };
 }
 
@@ -47,9 +48,9 @@ function mapProduct(p: DbProduct): Product {
     shortDescription: p.shortDescription,
     description: p.description,
     finish: p.finish,
-    features: p.features as string[],
-    gallery: p.gallery as string[],
-    image: p.image,
+    features: Array.isArray(p.features) ? (p.features as string[]) : [],
+    gallery: normalizeGallery(p.gallery as unknown[]),
+    image: normalizeImageSrc(p.image) || p.image,
   };
 }
 

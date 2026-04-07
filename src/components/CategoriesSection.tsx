@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef } from "react";
-import Image from "next/image";
+import CatalogImage from "@/components/CatalogImage";
 import Link from "next/link";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
@@ -106,7 +106,7 @@ export default function CategoriesSection({ categories }: Props) {
               style={{ clipPath: "inset(100% 0% 0% 0%)" }}
             >
               <div className="relative aspect-[4/5] overflow-hidden bg-cream-dark">
-                <Image
+                <CatalogImage
                   src={cat.image}
                   alt={cat.name}
                   fill
