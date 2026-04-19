@@ -3,6 +3,11 @@
 import { useEffect, useRef } from "react";
 import Image from "next/image";
 import gsap from "gsap";
+import {
+  isLowEndDevice,
+  isMobileViewport,
+  prefersReducedMotion,
+} from "@/lib/device-capabilities";
 
 interface MoodboardItem {
   src: string;
@@ -15,10 +20,24 @@ interface MoodboardItem {
   zIndex: number;
 }
 
-/** Ritmo del collage + pausa antes del slide: un poco más ágil (~1.5s menos hasta el hero). */
-const CARD_STAGGER = 0.38;
-const CARD_DURATION = 1.12;
-const SLIDE_UP_DURATION = 1;
+/**
+ * Timings del collage. Hay dos juegos:
+ *  - DESKTOP: sensación "editorial" más pausada.
+ *  - MOBILE / low-end: ~35% más rápido en stagger y 30% más corto en duración para que no se
+ *    perciba lento en dispositivos con GPU modesta. El slide up también se acorta.
+ *
+ * La ventana total antes de ver el hero:
+ *   t_hero ≈ (N-1) * STAGGER + DURATION + SLIDE_UP
+ *   Desktop: 5*0.38 + 1.12 + 1.0  ≈ 4.0 s
+ *   Mobile : 5*0.24 + 0.80 + 0.75 ≈ 2.75 s
+ */
+const CARD_STAGGER_DESKTOP = 0.38;
+const CARD_DURATION_DESKTOP = 1.12;
+const SLIDE_UP_DURATION_DESKTOP = 1;
+
+const CARD_STAGGER_MOBILE = 0.24;
+const CARD_DURATION_MOBILE = 0.8;
+const SLIDE_UP_DURATION_MOBILE = 0.75;
 
 /**
  * Imágenes que componen el collage del moodboard. `IntroOverlay` las precarga (junto al hero
@@ -83,6 +102,27 @@ export default function MoodboardOverlay({
     const inner = innerRef.current;
     if (!root || !inner) return;
 
+    /**
+     * Accesibilidad / rendimiento: si el usuario pidió "reduce motion", saltamos todo el
+     * collage y hacemos solo un fade a transparent. Notificamos `onRevealStart` y `onComplete`
+     * igual que en la ruta normal para que `home-client` marque el hero como revelado.
+     */
+    if (prefersReducedMotion()) {
+      onRevealStart?.();
+      gsap.to(root, {
+        opacity: 0,
+        duration: 0.35,
+        ease: "power1.out",
+        onComplete,
+      });
+      return;
+    }
+
+    const mobile = isMobileViewport() || isLowEndDevice();
+    const stagger = mobile ? CARD_STAGGER_MOBILE : CARD_STAGGER_DESKTOP;
+    const cardDuration = mobile ? CARD_DURATION_MOBILE : CARD_DURATION_DESKTOP;
+    const slideDuration = mobile ? SLIDE_UP_DURATION_MOBILE : SLIDE_UP_DURATION_DESKTOP;
+
     const cards = cardsRef.current.filter(Boolean) as HTMLDivElement[];
 
     cards.forEach((card) => {
@@ -104,14 +144,14 @@ export default function MoodboardOverlay({
 
     cards.forEach((card, i) => {
       const item = MOODBOARD_ITEMS[i];
-      const start = i * CARD_STAGGER;
+      const start = i * stagger;
 
       tl.to(card, {
         scale: 1, opacity: 1,
         left: item.finalX, top: item.finalY,
         xPercent: 0, yPercent: 0,
         rotation: item.rotation,
-        duration: CARD_DURATION, ease: "power2.out",
+        duration: cardDuration, ease: "power2.out",
       }, start);
 
       if (counterRef.current) {
@@ -123,7 +163,7 @@ export default function MoodboardOverlay({
 
     tl.to(root, {
       yPercent: -100,
-      duration: SLIDE_UP_DURATION,
+      duration: slideDuration,
       ease: "power3.inOut",
       onStart: () => {
         onRevealStart?.();
@@ -158,8 +198,14 @@ export default function MoodboardOverlay({
             <Image
               src={item.src} alt={item.alt} fill
               className="object-cover"
-              sizes="(max-width: 768px) 40vw, 28vw"
-              priority={i < 3}
+              /* En móvil las tarjetas ocupan como mucho ~24vw por los clamps de `width`. Un
+                 `sizes` ajustado hace que next/image entregue versiones más pequeñas (menos
+                 bytes, decodificación más rápida), que es exactamente lo que esta animación
+                 necesita para no sentirse lenta. */
+              sizes="(max-width: 768px) 28vw, 22vw"
+              priority={i < 2}
+              loading={i < 2 ? "eager" : "lazy"}
+              quality={70}
             />
           </div>
         ))}

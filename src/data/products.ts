@@ -1,6 +1,15 @@
 import type { Category, Product } from "./catalog";
 
-/** Datos iniciales para `npx prisma db seed` (no uses esto en runtime; usa `@/data/catalog`). */
+/**
+ * Datos iniciales para `npx prisma db seed`. NO se usa en runtime: para leer datos en
+ * la app usá `@/data/catalog` (que va contra Prisma).
+ *
+ * Las medidas/variantes (`sizes`) se gestionan desde el panel admin y se persisten en su
+ * propia tabla, así que las omitimos aquí (`Omit<Product, "sizes">`). Si querés sembrar
+ * medidas iniciales, hacelo en `prisma/seed.ts` (mapa `seedSizesByProductId`).
+ */
+export type SeedProduct = Omit<Product, "sizes">;
+
 export const categories: Category[] = [
   {
     slug: "mesas-de-comedor",
@@ -46,7 +55,7 @@ export const categories: Category[] = [
   },
 ];
 
-export const products: Product[] = [
+export const products: SeedProduct[] = [
   // ── Mesas de Comedor ──
   {
     id: "comedor-raiz-viva",

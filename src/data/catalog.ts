@@ -1,4 +1,8 @@
-import type { Category as DbCategory, Product as DbProduct } from "@prisma/client";
+import type {
+  Category as DbCategory,
+  Product as DbProduct,
+  ProductSize as DbProductSize,
+} from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { normalizeGallery, normalizeImageSrc } from "@/lib/image-url";
 
@@ -8,6 +12,14 @@ export type Category = {
   tagline: string;
   description: string;
   image: string;
+};
+
+/** Variante de medida de un producto (ej: "140x90" → "$2.819.000"). */
+export type ProductSize = {
+  id: number;
+  label: string;
+  price: string;
+  position: number;
 };
 
 export type Product = {
@@ -24,7 +36,15 @@ export type Product = {
   features: string[];
   image: string;
   gallery: string[];
+  sizes: ProductSize[];
 };
+
+/**
+ * Forma con la que Prisma devuelve un producto cuando incluimos `sizes`.
+ * Lo definimos explícito para no acoplar todo el código a `Prisma.ProductGetPayload<...>`
+ * y permitir mapear desde queries que NO incluyan sizes (en cuyo caso rellenamos `[]`).
+ */
+type DbProductWithSizes = DbProduct & { sizes?: DbProductSize[] };
 
 function mapCategory(c: DbCategory): Category {
   return {
@@ -36,7 +56,20 @@ function mapCategory(c: DbCategory): Category {
   };
 }
 
-function mapProduct(p: DbProduct): Product {
+function mapSize(s: DbProductSize): ProductSize {
+  return {
+    id: s.id,
+    label: s.label,
+    price: s.price,
+    position: s.position,
+  };
+}
+
+function mapProduct(p: DbProductWithSizes): Product {
+  const sizes = (p.sizes ?? [])
+    .slice()
+    .sort((a, b) => a.position - b.position || a.id - b.id)
+    .map(mapSize);
   return {
     id: p.id,
     name: p.name,
@@ -51,6 +84,7 @@ function mapProduct(p: DbProduct): Product {
     features: Array.isArray(p.features) ? (p.features as string[]) : [],
     gallery: normalizeGallery(p.gallery as unknown[]),
     image: normalizeImageSrc(p.image) || p.image,
+    sizes,
   };
 }
 
@@ -68,18 +102,23 @@ export async function getProductsByCategory(slug: string): Promise<Product[]> {
   const rows = await prisma.product.findMany({
     where: { categorySlug: slug },
     orderBy: { name: "asc" },
+    include: { sizes: { orderBy: [{ position: "asc" }, { id: "asc" }] } },
   });
   return rows.map(mapProduct);
 }
 
 export async function getProduct(id: string): Promise<Product | null> {
-  const p = await prisma.product.findUnique({ where: { id } });
+  const p = await prisma.product.findUnique({
+    where: { id },
+    include: { sizes: { orderBy: [{ position: "asc" }, { id: "asc" }] } },
+  });
   return p ? mapProduct(p) : null;
 }
 
 export async function getAllProducts(): Promise<Product[]> {
   const rows = await prisma.product.findMany({
     orderBy: [{ categorySlug: "asc" }, { name: "asc" }],
+    include: { sizes: { orderBy: [{ position: "asc" }, { id: "asc" }] } },
   });
   return rows.map(mapProduct);
 }

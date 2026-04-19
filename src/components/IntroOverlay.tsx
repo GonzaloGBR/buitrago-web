@@ -4,30 +4,47 @@ import { useEffect, useRef, useState } from "react";
 import gsap from "gsap";
 import LogoMark from "@/components/LogoMark";
 import { MOODBOARD_ITEMS } from "@/components/MoodboardOverlay";
+import {
+  isLowEndDevice,
+  isMobileViewport,
+  prefersReducedMotion,
+} from "@/lib/device-capabilities";
 
 type IntroOverlayProps = {
   onComplete: () => void;
 };
 
 /**
- * Activos críticos a tener en caché antes de soltar el contador al 100%:
- *  - Hero (la primera imagen full-bleed visible al terminar la animación).
- *  - Todas las imágenes del moodboard (vienen del propio componente para evitar duplicar la lista).
- *  - Logo (se pinta como máscara, lo cargamos para no ver el rectángulo de fondo durante el primer paint).
+ * Activos a precargar antes de soltar el contador al 100%.
  *
- * Deduplicado con `Set` por si el moodboard reutiliza alguna imagen del hero a futuro.
+ * Nota crítica de performance:
+ *  - Las imágenes del moodboard se muestran vía `next/image` que sirve variantes WebP/AVIF
+ *    (URLs `/_next/image?url=...`). Si precargáramos los PNG originales, el móvil bajaría
+ *    TODO dos veces (original + variante optimizada). Por eso solo precargamos:
+ *      • Hero (aparece inmediato tras la intro, full-bleed, necesitamos calidad).
+ *      • Logo de la intro.
+ *      • Las 2 primeras tarjetas del moodboard (las primeras en aparecer y entrar al viewport),
+ *        para que el collage no arranque con placeholders vacíos.
+ *  - El resto del moodboard lo carga `next/image` con `priority` mientras la animación corre.
+ *
+ * Deduplicado con `Set` por si el hero coincide con alguna del moodboard.
  */
 const PRELOAD_IMAGES: string[] = Array.from(
   new Set<string>([
     "/hero-dining-room-hd.jpg",
-    ...MOODBOARD_ITEMS.map((m) => m.src),
     "/logo-b-mark.png",
+    ...MOODBOARD_ITEMS.slice(0, 2).map((m) => m.src),
   ])
 );
 
+/**
+ * Preload con hard-cap de tiempo: si alguna imagen se cuelga (red lenta, 404 silencioso, etc.)
+ * resolvemos igualmente al expirar el cap. Evita que el usuario quede mirando "78%" 20 segundos.
+ */
 function preloadImages(
   urls: string[],
-  onProgress: (pct: number) => void
+  onProgress: (pct: number) => void,
+  hardCapMs: number
 ): Promise<void> {
   let loaded = 0;
   const total = urls.length;
@@ -39,12 +56,27 @@ function preloadImages(
       return;
     }
 
+    let resolved = false;
+    const finish = () => {
+      if (resolved) return;
+      resolved = true;
+      onProgress(100);
+      resolve();
+    };
+
+    const timeoutId = window.setTimeout(finish, hardCapMs);
+
     urls.forEach((url) => {
       const img = new window.Image();
       const done = () => {
         loaded++;
-        onProgress(Math.round((loaded / total) * 100));
-        if (loaded >= total) resolve();
+        if (!resolved) {
+          onProgress(Math.round((loaded / total) * 100));
+        }
+        if (loaded >= total) {
+          window.clearTimeout(timeoutId);
+          finish();
+        }
       };
       img.onload = done;
       img.onerror = done;
@@ -65,14 +97,42 @@ export default function IntroOverlay({ onComplete }: IntroOverlayProps) {
     const logo = logoRef.current;
     if (!overlay || !logo) return;
 
+    /**
+     * Accesibilidad: si el usuario pidió menos movimiento, saltamos toda la animación con
+     * un fade out corto. El sitio sigue operativo y mantiene el "gating" de pintado del
+     * resto del home (Hero + moodboard) sin mostrar contador ni collage.
+     */
+    if (prefersReducedMotion()) {
+      gsap.to(overlay, {
+        opacity: 0,
+        duration: 0.25,
+        ease: "power1.out",
+        onComplete,
+      });
+      return;
+    }
+
+    const mobile = isMobileViewport();
+    const lowEnd = isLowEndDevice();
+
+    /**
+     * Ritmo del contador:
+     *  - Desktop fluido: ~1.5 u/frame (sensación suave).
+     *  - Móvil / low-end: subimos el paso para que no "se quede" visual.
+     * También bajamos el hard-cap en móvil (3.5s vs 5s) para no castigar con intros largas
+     * en redes lentas: preferible perder un poco de precarga y arrancar antes.
+     */
+    const counterStep = mobile || lowEnd ? 3.2 : 1.8;
+    const hardCapMs = mobile || lowEnd ? 3500 : 5000;
+
     gsap.set(logo, { opacity: 0, y: 12 });
-    gsap.to(logo, { opacity: 1, y: 0, duration: 1, ease: "power3.out", delay: 0.15 });
+    gsap.to(logo, { opacity: 1, y: 0, duration: 0.8, ease: "power3.out", delay: 0.1 });
 
     let targetPct = 0;
 
     const ticker = gsap.ticker.add(() => {
       if (displayPct.current < targetPct) {
-        displayPct.current = Math.min(displayPct.current + 1.5, targetPct);
+        displayPct.current = Math.min(displayPct.current + counterStep, targetPct);
         if (counterRef.current) {
           counterRef.current.textContent = Math.round(displayPct.current) + "%";
         }
@@ -81,31 +141,35 @@ export default function IntroOverlay({ onComplete }: IntroOverlayProps) {
 
     preloadImages(PRELOAD_IMAGES, (pct) => {
       targetPct = pct;
-    }).then(() => {
+    }, hardCapMs).then(() => {
       targetPct = 100;
+      // Poll más rápido en móvil para cerrar el overlay cuanto antes.
+      const pollMs = mobile || lowEnd ? 30 : 50;
       const waitForDisplay = setInterval(() => {
         if (displayPct.current >= 99) {
           clearInterval(waitForDisplay);
           setLoadDone(true);
         }
-      }, 50);
+      }, pollMs);
     });
 
     return () => {
       gsap.ticker.remove(ticker);
     };
-  }, []);
+  }, [onComplete]);
 
   useEffect(() => {
     if (!loadDone) return;
     const overlay = overlayRef.current;
     if (!overlay) return;
 
+    /** Fade out final. En móvil lo acortamos un pelín para pasar rápido al moodboard. */
+    const mobile = isMobileViewport();
     gsap.to(overlay, {
       opacity: 0,
-      duration: 0.8,
+      duration: mobile ? 0.55 : 0.8,
       ease: "power2.inOut",
-      delay: 0.3,
+      delay: mobile ? 0.15 : 0.3,
       onComplete,
     });
   }, [loadDone, onComplete]);

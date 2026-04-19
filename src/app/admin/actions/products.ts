@@ -19,6 +19,51 @@ function parseGallery(raw: string): string[] {
   return lines.map((s) => normalizeImageSrc(s.trim())).filter(Boolean);
 }
 
+/** Variante de medida lista para insertarse en BD (sin productId, lo añade el caller). */
+type ParsedSize = { label: string; price: string; position: number };
+
+/**
+ * Parsea las medidas que el `ProductForm` envía en un único campo `sizes` con JSON serializado:
+ *   [{ "label": "140x90", "price": "$2.819.000" }, ...]
+ *
+ * Razones del formato JSON (en lugar de pares `sizeLabel[]` / `sizePrice[]`):
+ * - Un único hidden input controlado por el cliente: imposible que se desincronicen los pares.
+ * - Permite reordenar y borrar filas en el cliente sin tener que mantener N inputs sincronizados.
+ *
+ * Validaciones:
+ * - Cada fila debe tener `label` no vacío. Filas con label vacío se descartan silenciosamente
+ *   (común al añadir una fila y no llenarla).
+ * - `price` se permite vacío y se sustituye por "—" para mantener coherencia con el resto del
+ *   modelo (que usa "—" como placeholder cuando no hay valor).
+ * - `position` se asigna por orden de llegada (0..n) para que el orden visual del admin se
+ *   refleje 1:1 en la página pública.
+ */
+function parseSizes(raw: string): ParsedSize[] {
+  if (!raw.trim()) return [];
+  let data: unknown;
+  try {
+    data = JSON.parse(raw);
+  } catch {
+    return [];
+  }
+  if (!Array.isArray(data)) return [];
+
+  const result: ParsedSize[] = [];
+  for (const item of data) {
+    if (!item || typeof item !== "object") continue;
+    const rec = item as Record<string, unknown>;
+    const label = typeof rec.label === "string" ? rec.label.trim() : "";
+    const price = typeof rec.price === "string" ? rec.price.trim() : "";
+    if (!label) continue;
+    result.push({
+      label,
+      price: price || "—",
+      position: result.length,
+    });
+  }
+  return result;
+}
+
 export type ProductFormState = { error?: string } | null;
 
 export async function createProductAction(
@@ -39,6 +84,7 @@ export async function createProductAction(
   const image = normalizeImageSrc(String(formData.get("image") ?? "").trim());
   const features = parseFeatures(String(formData.get("features") ?? ""));
   const gallery = parseGallery(String(formData.get("gallery") ?? ""));
+  const sizes = parseSizes(String(formData.get("sizes") ?? ""));
 
   if (!isValidProductId(id)) {
     return { error: "ID inválido (minúsculas, números y guiones)." };
@@ -66,6 +112,8 @@ export async function createProductAction(
         image,
         features,
         gallery,
+        // Las medidas se insertan en cascada con el producto.
+        sizes: sizes.length > 0 ? { create: sizes } : undefined,
       },
     });
   } catch {
@@ -95,6 +143,7 @@ export async function updateProductAction(
   const image = normalizeImageSrc(String(formData.get("image") ?? "").trim());
   const features = parseFeatures(String(formData.get("features") ?? ""));
   const gallery = parseGallery(String(formData.get("gallery") ?? ""));
+  const sizes = parseSizes(String(formData.get("sizes") ?? ""));
 
   if (!categorySlug || !name || !image || gallery.length === 0) {
     return { error: "Categoría, nombre, imagen y galería son obligatorios." };
@@ -109,23 +158,40 @@ export async function updateProductAction(
       where: { id: productId },
       select: { categorySlug: true },
     });
-    await prisma.product.update({
-      where: { id: productId },
-      data: {
-        categorySlug,
-        name,
-        price: price || "—",
-        wood: wood || "—",
-        woodBadge: woodBadge || "—",
-        dimensions: dimensions || "—",
-        shortDescription: shortDescription || "—",
-        description: description || "—",
-        finish: finish || "—",
-        image,
-        features,
-        gallery,
-      },
-    });
+    /**
+     * Estrategia "borrar y recrear" para sizes:
+     * - Las filas no tienen identidad estable a ojos del usuario (solo label/price/posición),
+     *   así que detectar añadidos/editados/borrados fila a fila no aporta valor y complica el código.
+     * - `deleteMany + create` dentro de la misma operación atómica garantiza consistencia.
+     * - Envuelto en `$transaction` por si falla a mitad de camino.
+     */
+    await prisma.$transaction([
+      prisma.product.update({
+        where: { id: productId },
+        data: {
+          categorySlug,
+          name,
+          price: price || "—",
+          wood: wood || "—",
+          woodBadge: woodBadge || "—",
+          dimensions: dimensions || "—",
+          shortDescription: shortDescription || "—",
+          description: description || "—",
+          finish: finish || "—",
+          image,
+          features,
+          gallery,
+        },
+      }),
+      prisma.productSize.deleteMany({ where: { productId } }),
+      ...(sizes.length > 0
+        ? [
+            prisma.productSize.createMany({
+              data: sizes.map((s) => ({ ...s, productId })),
+            }),
+          ]
+        : []),
+    ]);
   } catch {
     return { error: "No se pudo guardar." };
   }

@@ -9,6 +9,7 @@ import {
 } from "@/app/admin/actions/products";
 import AdminImageField from "@/components/admin/AdminImageField";
 import AdminGalleryField from "@/components/admin/AdminGalleryField";
+import ProductSizesField from "@/components/admin/ProductSizesField";
 import {
   ADMIN_LABEL_CLASS,
   AdminField,
@@ -95,13 +96,18 @@ export default function ProductForm(props: Props) {
       </AdminField>
 
       <div className="grid gap-5 sm:grid-cols-2">
-        <AdminField label="Precio">
+        <AdminField label="Precio principal">
           <AdminInput name="price" defaultValue={initial?.price} />
+          <p className="mt-1 font-sans text-xs text-warm-gray">
+            Se muestra cuando no hay variantes de medida o como referencia.
+          </p>
         </AdminField>
         <AdminField label="Dimensiones">
           <AdminInput name="dimensions" defaultValue={initial?.dimensions} />
         </AdminField>
       </div>
+
+      <ProductSizesField defaultSizes={initial?.sizes} />
 
       <div className="grid gap-5 sm:grid-cols-2">
         <AdminField label="Madera">

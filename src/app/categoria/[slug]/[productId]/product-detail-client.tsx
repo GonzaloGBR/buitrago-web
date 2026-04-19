@@ -1,9 +1,9 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import CatalogImage from "@/components/CatalogImage";
 import Link from "next/link";
-import type { Category, Product } from "@/data/catalog";
+import type { Category, Product, ProductSize } from "@/data/catalog";
 
 type Props = {
   slug: string;
@@ -11,6 +11,60 @@ type Props = {
   category: Category;
   similarProducts: Product[];
 };
+
+/**
+ * `id` sentinela para la "variante por defecto" que construimos a partir del precio
+ * principal y las dimensiones del producto. Negativo para no colisionar nunca con
+ * los IDs autoincrementales de `ProductSize` (que parten en 1).
+ */
+const DEFAULT_VARIANT_ID = -1;
+
+/** Normaliza una etiqueta para compararla sin distinguir mayúsculas/espacios/separadores
+ *  habituales (×, x, *). Así detectamos duplicados como "210x100" vs "210×100". */
+function normalizeSizeLabel(s: string): string {
+  return s.toLowerCase().replace(/\s+/g, "").replace(/[×*]/g, "x");
+}
+
+/**
+ * Construye la lista de medidas que se muestran en el selector.
+ *
+ * Reglas:
+ *  - Si el producto NO tiene variantes en BD → devolvemos []. La página no muestra selector y
+ *    cae al precio único de siempre.
+ *  - Si SÍ tiene variantes → anteponemos una "variante por defecto" sintética con
+ *    `label = product.dimensions` y `price = product.price`. Esto permite que el cliente
+ *    también pueda elegir la medida principal (la que el admin escribió en los campos
+ *    "Dimensiones" + "Precio principal"), no solo las extras.
+ *  - Si la dimension principal está vacía / es "—", o si su label coincide con alguna
+ *    variante existente (caso típico: el admin la duplicó por error), NO la antepondemos
+ *    para no mostrar opciones repetidas o medidas vacías.
+ */
+function buildDisplaySizes(product: Product): ProductSize[] {
+  if (product.sizes.length === 0) return [];
+
+  const defaultLabel = product.dimensions.trim();
+  const defaultPrice = product.price.trim();
+  const isMeaningful =
+    defaultLabel.length > 0 &&
+    defaultLabel !== "—" &&
+    defaultPrice.length > 0 &&
+    defaultPrice !== "—";
+  if (!isMeaningful) return product.sizes;
+
+  const defaultNorm = normalizeSizeLabel(defaultLabel);
+  const alreadyPresent = product.sizes.some(
+    (s) => normalizeSizeLabel(s.label) === defaultNorm
+  );
+  if (alreadyPresent) return product.sizes;
+
+  const defaultRow: ProductSize = {
+    id: DEFAULT_VARIANT_ID,
+    label: defaultLabel,
+    price: defaultPrice,
+    position: -1,
+  };
+  return [defaultRow, ...product.sizes];
+}
 
 export default function ProductDetailClient({
   slug,
@@ -21,6 +75,24 @@ export default function ProductDetailClient({
   const [activeImg, setActiveImg] = useState(0);
   const [showShare, setShowShare] = useState(false);
 
+  /**
+   * Selector de variantes por medida.
+   * - `displaySizes` mezcla las variantes guardadas en BD + (si corresponde) la medida
+   *   "por defecto" del producto, antepuesta como primera opción.
+   * - Si no hay variantes en BD seguimos mostrando solo el precio principal, sin selector.
+   * - Guardamos el `id` (no el índice) para sobrevivir a reordenamientos / ediciones del admin.
+   */
+  const displaySizes = useMemo(() => buildDisplaySizes(product), [product]);
+  const hasSizes = displaySizes.length > 0;
+  const [selectedSizeId, setSelectedSizeId] = useState<number | null>(
+    () => displaySizes[0]?.id ?? null
+  );
+  const selectedSize =
+    displaySizes.find((s) => s.id === selectedSizeId) ?? displaySizes[0] ?? null;
+
+  const displayPrice = selectedSize?.price ?? product.price;
+  const displayDimensions = selectedSize?.label ?? product.dimensions;
+
   useEffect(() => {
     if (showShare) {
       const t = setTimeout(() => setShowShare(false), 2500);
@@ -29,7 +101,9 @@ export default function ProductDetailClient({
   }, [showShare]);
 
   const whatsappMessage = encodeURIComponent(
-    `Hola, me interesa cotizar "${product.name}" (${product.wood}, ${product.dimensions}). ¿Podrían darme más información?`
+    `Hola, me interesa cotizar "${product.name}" (${product.wood}, ${displayDimensions}${
+      selectedSize ? ` — ${selectedSize.price}` : ""
+    }). ¿Podrían darme más información?`
   );
   const whatsappUrl = `https://wa.me/5491100000000?text=${whatsappMessage}`;
 
@@ -142,22 +216,68 @@ export default function ProductDetailClient({
               {product.name}
             </h1>
 
-            <p className="heading-editorial mt-3 text-xl text-charcoal/70 sm:text-2xl md:text-[1.65rem]">
-              {product.price}
+            <p
+              key={displayPrice}
+              className="heading-editorial mt-3 text-xl text-charcoal/70 transition-opacity duration-300 sm:text-2xl md:text-[1.65rem]"
+            >
+              {displayPrice}
             </p>
 
             <p className="text-body-elegant mt-5 text-[0.85rem] leading-[1.7] text-warm-gray sm:mt-6 sm:text-[0.88rem]">
               {product.description}
             </p>
 
+            {hasSizes ? (
+              <div className="mt-6 sm:mt-7">
+                <div className="mb-3 flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
+                  <span className="text-label text-warm-gray">
+                    Medidas:{" "}
+                    <span className="font-sans text-[0.82rem] tracking-normal text-charcoal">
+                      {selectedSize?.label}
+                    </span>
+                  </span>
+                  <span className="font-sans text-[0.7rem] text-warm-gray">
+                    {displaySizes.length} disponibles
+                  </span>
+                </div>
+                <div
+                  role="radiogroup"
+                  aria-label="Elegir medida"
+                  className="flex flex-wrap gap-2"
+                >
+                  {displaySizes.map((s) => {
+                    const active = s.id === selectedSizeId;
+                    return (
+                      <button
+                        key={s.id}
+                        type="button"
+                        role="radio"
+                        aria-checked={active}
+                        onClick={() => setSelectedSizeId(s.id)}
+                        className={`min-w-[4.5rem] cursor-pointer rounded-sm border px-3 py-2 font-sans text-[0.78rem] transition-colors duration-200 ${
+                          active
+                            ? "border-charcoal bg-charcoal text-cream"
+                            : "border-charcoal/20 bg-white text-charcoal hover:border-charcoal/50"
+                        }`}
+                      >
+                        {s.label}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            ) : null}
+
             <div className="mt-7 grid grid-cols-2 gap-5 border-y border-sand/40 py-5 sm:mt-8 sm:gap-6 sm:py-6">
               <div>
-                <span className="text-label mb-2 block text-warm-gray">Dimensiones</span>
+                <span className="text-label mb-2 block text-warm-gray">
+                  {hasSizes ? "Medida elegida" : "Dimensiones"}
+                </span>
                 <div className="flex items-center gap-2 font-sans text-[0.78rem] text-charcoal sm:text-[0.82rem]">
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="shrink-0 text-warm-gray">
                     <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z" />
                   </svg>
-                  <span className="break-words">{product.dimensions}</span>
+                  <span className="break-words">{displayDimensions}</span>
                 </div>
               </div>
               <div>
