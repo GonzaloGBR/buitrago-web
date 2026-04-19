@@ -1,58 +1,34 @@
 "use client";
 
-import { useEffect, useRef } from "react";
-import gsap from "gsap";
-import { ScrollTrigger } from "gsap/ScrollTrigger";
-
-gsap.registerPlugin(ScrollTrigger);
+import { useRef } from "react";
+import Link from "next/link";
+import { SITE_CONTACT_EMAIL } from "@/lib/site-contact";
+import { useFadeUpOnScroll } from "@/lib/use-fade-up-on-scroll";
 
 export default function ContactSection() {
   const sectionRef = useRef<HTMLElement>(null);
   const titleRef = useRef<HTMLHeadingElement>(null);
   const contentRef = useRef<HTMLDivElement>(null);
 
-  useEffect(() => {
-    const ctx = gsap.context(() => {
-      gsap.fromTo(
-        titleRef.current,
-        { y: 56, opacity: 0 },
-        {
-          y: 0,
-          opacity: 1,
-          duration: 1.4,
-          ease: "power2.out",
-          scrollTrigger: {
-            trigger: sectionRef.current,
-            start: "top 72%",
-          },
-        }
-      );
-
-      gsap.fromTo(
-        contentRef.current,
-        { y: 32, opacity: 0 },
-        {
-          y: 0,
-          opacity: 1,
-          duration: 1.15,
-          delay: 0.18,
-          ease: "power2.out",
-          scrollTrigger: {
-            trigger: sectionRef.current,
-            start: "top 72%",
-          },
-        }
-      );
-    }, sectionRef);
-
-    return () => ctx.revert();
-  }, []);
+  useFadeUpOnScroll(titleRef, {
+    y: 56,
+    duration: 1.4,
+    start: "top 72%",
+    triggerRef: sectionRef,
+  });
+  useFadeUpOnScroll(contentRef, {
+    y: 32,
+    duration: 1.15,
+    delay: 0.18,
+    start: "top 72%",
+    triggerRef: sectionRef,
+  });
 
   return (
     <section
       ref={sectionRef}
       id="contacto"
-      className="relative overflow-hidden bg-charcoal py-36 text-cream md:py-52"
+      className="relative overflow-hidden bg-charcoal py-20 text-cream sm:py-28 md:py-52"
     >
       {/* Background texture overlay */}
       <div className="absolute inset-0 opacity-5">
@@ -66,13 +42,13 @@ export default function ContactSection() {
       </div>
 
       <div className="section-editorial relative text-center">
-        <span className="text-label text-warm-gray block mb-8">
+        <span className="text-label text-warm-gray block mb-6 sm:mb-8">
           Hablemos de tu proyecto
         </span>
 
         <h2
           ref={titleRef}
-          className="heading-display text-[clamp(2.5rem,6vw,7rem)] text-cream mb-8 opacity-0"
+          className="heading-display text-[clamp(2.25rem,7vw,7rem)] text-cream mb-6 opacity-0 sm:mb-8"
         >
           Creemos algo
           <br />
@@ -80,18 +56,18 @@ export default function ContactSection() {
         </h2>
 
         <div ref={contentRef} className="opacity-0">
-          <p className="text-body-elegant text-warm-gray-light max-w-lg mx-auto mb-12">
+          <p className="text-body-elegant text-warm-gray-light max-w-lg mx-auto mb-10 px-2 text-sm sm:mb-12 sm:px-0 sm:text-base">
             Cada proyecto comienza con una idea. Cuéntanos la tuya y juntos la
             transformaremos en una pieza que perdure por generaciones.
           </p>
 
-          <button className="btn-editorial-light">
-            <span>Iniciar Conversación</span>
+          <Link href="/contacto" className="btn-editorial-light no-underline">
+            <span>Formulario de contacto</span>
             <span>→</span>
-          </button>
+          </Link>
 
           {/* Contact Details */}
-          <div className="mt-20 pt-12 border-t border-warm-gray/20 grid grid-cols-1 md:grid-cols-3 gap-8">
+          <div className="mt-14 pt-10 border-t border-warm-gray/20 grid grid-cols-1 gap-8 text-center sm:mt-20 sm:pt-12 md:grid-cols-3 md:text-left">
             <div>
               <p className="text-label text-warm-gray mb-3">Visítanos</p>
               <p className="text-body-elegant text-cream/80 text-sm">
@@ -103,15 +79,15 @@ export default function ContactSection() {
             <div>
               <p className="text-label text-warm-gray mb-3">Escríbenos</p>
               <a
-                href="mailto:hola@buitrago.com"
-                className="text-body-elegant text-sm text-cream/80 transition-colors duration-500 hover:text-accent"
+                href={`mailto:${SITE_CONTACT_EMAIL}`}
+                className="text-body-elegant break-all text-sm text-cream/80 transition-colors duration-500 hover:text-accent"
               >
-                hola@buitrago.com
+                {SITE_CONTACT_EMAIL}
               </a>
             </div>
             <div>
               <p className="text-label text-warm-gray mb-3">Síguenos</p>
-              <div className="flex justify-center md:justify-start gap-6">
+              <div className="flex justify-center gap-6 md:justify-start">
                 {["Instagram", "Pinterest"].map((social) => (
                   <a
                     key={social}

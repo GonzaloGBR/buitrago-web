@@ -8,12 +8,12 @@ export default function AdminPanelLayout({
 }) {
   return (
     <div className="min-h-screen bg-[#faf9f6]">
-      <header className="border-b border-charcoal/10 bg-cream px-6 py-4">
-        <div className="mx-auto flex max-w-5xl flex-wrap items-center justify-between gap-4">
-          <Link href="/admin" className="font-serif text-lg text-charcoal">
+      <header className="sticky top-0 z-40 border-b border-charcoal/10 bg-cream/95 px-4 py-3 backdrop-blur-sm sm:px-6 sm:py-4">
+        <div className="mx-auto flex max-w-5xl flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between sm:gap-4">
+          <Link href="/admin" className="font-serif text-base text-charcoal sm:text-lg">
             Buitrago — Admin
           </Link>
-          <nav className="flex flex-wrap items-center gap-5 text-sm text-charcoal/80">
+          <nav className="-mx-1 flex flex-wrap items-center gap-x-4 gap-y-2 text-[0.82rem] text-charcoal/80 sm:gap-5 sm:text-sm">
             <Link href="/admin" className="hover:text-charcoal">
               Inicio
             </Link>
@@ -22,6 +22,9 @@ export default function AdminPanelLayout({
             </Link>
             <Link href="/admin/products" className="hover:text-charcoal">
               Productos
+            </Link>
+            <Link href="/admin/featured" className="hover:text-charcoal">
+              Destacados
             </Link>
             <Link href="/" className="text-warm-gray hover:text-charcoal">
               Ver sitio
@@ -37,7 +40,7 @@ export default function AdminPanelLayout({
           </nav>
         </div>
       </header>
-      <div className="mx-auto max-w-5xl px-6 py-10">{children}</div>
+      <div className="mx-auto max-w-5xl px-4 py-6 sm:px-6 sm:py-10">{children}</div>
     </div>
   );
 }

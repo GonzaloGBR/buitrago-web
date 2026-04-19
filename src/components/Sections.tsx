@@ -2,10 +2,9 @@
 
 import { useEffect, useRef } from "react";
 import Image from "next/image";
+import Link from "next/link";
 import gsap from "gsap";
-import { ScrollTrigger } from "gsap/ScrollTrigger";
-
-gsap.registerPlugin(ScrollTrigger);
+import { useFadeUpOnScroll } from "@/lib/use-fade-up-on-scroll";
 
 const marqueeItems = [
   "Muebles artesanales",
@@ -34,7 +33,7 @@ export default function MarqueeSection() {
   }, []);
 
   return (
-    <section className="overflow-hidden border-y border-sand/35 py-12 md:py-16">
+    <section className="overflow-hidden border-b border-sand/35 bg-cream py-12 md:py-16">
       <div
         ref={marqueeRef}
         className="flex items-center gap-8 whitespace-nowrap md:gap-12"
@@ -59,42 +58,19 @@ export function PhilosophySection() {
   const leftRef = useRef<HTMLDivElement>(null);
   const rightRef = useRef<HTMLDivElement>(null);
 
-  useEffect(() => {
-    const ctx = gsap.context(() => {
-      gsap.fromTo(
-        leftRef.current,
-        { y: 48, opacity: 0 },
-        {
-          y: 0,
-          opacity: 1,
-          duration: 1.45,
-          ease: "power2.out",
-          scrollTrigger: {
-            trigger: sectionRef.current,
-            start: "top 72%",
-          },
-        }
-      );
-
-      gsap.fromTo(
-        rightRef.current,
-        { y: 56, opacity: 0 },
-        {
-          y: 0,
-          opacity: 1,
-          duration: 1.45,
-          delay: 0.12,
-          ease: "power2.out",
-          scrollTrigger: {
-            trigger: sectionRef.current,
-            start: "top 72%",
-          },
-        }
-      );
-    }, sectionRef);
-
-    return () => ctx.revert();
-  }, []);
+  useFadeUpOnScroll(leftRef, {
+    y: 48,
+    duration: 1.45,
+    start: "top 72%",
+    triggerRef: sectionRef,
+  });
+  useFadeUpOnScroll(rightRef, {
+    y: 56,
+    duration: 1.45,
+    delay: 0.12,
+    start: "top 72%",
+    triggerRef: sectionRef,
+  });
 
   return (
     <section
@@ -102,7 +78,7 @@ export function PhilosophySection() {
       id="nosotros"
       className="section-editorial section-y-loose"
     >
-      <div className="grid grid-cols-1 items-center gap-14 md:grid-cols-2 md:gap-24">
+      <div className="grid grid-cols-1 items-center gap-10 sm:gap-14 md:grid-cols-2 md:gap-24">
         <div ref={leftRef} className="opacity-0">
           <div className="relative aspect-[4/5] overflow-hidden">
             <Image
@@ -116,30 +92,30 @@ export function PhilosophySection() {
         </div>
 
         <div ref={rightRef} className="opacity-0">
-          <span className="text-label mb-7 block text-warm-gray">
+          <span className="text-label mb-5 block text-warm-gray sm:mb-7">
             Nuestra Filosofía
           </span>
 
-          <h2 className="heading-editorial mb-9 text-3xl leading-[1.12] text-charcoal md:text-5xl">
+          <h2 className="heading-editorial mb-6 text-[clamp(1.75rem,6vw,3rem)] leading-[1.12] text-charcoal sm:mb-9 md:text-5xl">
             La nobleza de lo hecho
             <span className="text-warm-gray"> a mano</span>
           </h2>
 
-          <p className="text-body-elegant mb-7 max-w-md text-warm-gray">
+          <p className="text-body-elegant mb-5 max-w-md text-sm text-warm-gray sm:mb-7 sm:text-base">
             En Buitrago, cada pieza nace de una conversación entre la madera y
             las manos que la trabajan. No fabricamos muebles en serie —
             esculpimos legados.
           </p>
 
-          <p className="text-body-elegant mb-12 max-w-md text-warm-gray">
+          <p className="text-body-elegant mb-9 max-w-md text-sm text-warm-gray sm:mb-12 sm:text-base">
             Tres generaciones de carpinteros nos respaldan. Cada ensamble, cada
             acabado, cada curva cuenta una historia de dedicación y perfección.
           </p>
 
-          <button className="btn-editorial" type="button">
+          <Link href="/conocer-mas" className="btn-editorial no-underline">
             <span>Conocer más</span>
             <span>→</span>
-          </button>
+          </Link>
         </div>
       </div>
     </section>

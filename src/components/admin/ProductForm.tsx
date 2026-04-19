@@ -1,6 +1,6 @@
 "use client";
 
-import { useFormState } from "react-dom";
+import { useActionState } from "react";
 import { useSearchParams } from "next/navigation";
 import {
   createProductAction,
@@ -9,10 +9,17 @@ import {
 } from "@/app/admin/actions/products";
 import AdminImageField from "@/components/admin/AdminImageField";
 import AdminGalleryField from "@/components/admin/AdminGalleryField";
+import {
+  ADMIN_LABEL_CLASS,
+  AdminField,
+  AdminInput,
+  AdminSelect,
+  AdminTextarea,
+} from "@/components/admin/AdminFormControls";
 import type { Category, Product } from "@/data/catalog";
 
 type Props =
-  | { mode: "create"; categories: Category[] }
+  | { mode: "create"; categories: Category[]; defaultCategorySlug?: string }
   | { mode: "edit"; categories: Category[]; initial: Product };
 
 function getProductFormAction(props: Props) {
@@ -24,8 +31,10 @@ export default function ProductForm(props: Props) {
   const searchParams = useSearchParams();
   const ok = searchParams.get("ok");
   const initial = props.mode === "edit" ? props.initial : null;
+  const defaultCategorySlug =
+    props.mode === "create" ? props.defaultCategorySlug : undefined;
 
-  const [state, formAction] = useFormState(
+  const [state, formAction] = useActionState(
     getProductFormAction(props),
     null as ProductFormState
   );
@@ -44,38 +53,33 @@ export default function ProductForm(props: Props) {
       ) : null}
 
       {props.mode === "create" ? (
-        <div>
-          <label className="mb-2 block text-[0.7rem] uppercase tracking-[0.12em] text-warm-gray">
-            ID del producto (URL, no se puede cambiar después)
-          </label>
-          <input
+        <AdminField label="ID del producto (URL, no se puede cambiar después)">
+          <AdminInput
             name="id"
             required
             pattern="[a-z0-9-]+"
-            className="w-full rounded-sm border border-charcoal/15 bg-white px-3 py-2.5 font-mono text-sm outline-none focus:border-charcoal/40"
             placeholder="comedor-raiz-viva"
+            variant="mono"
           />
-        </div>
+        </AdminField>
       ) : (
         <div>
-          <span className="mb-2 block text-[0.7rem] uppercase tracking-[0.12em] text-warm-gray">
-            ID
-          </span>
+          <span className={ADMIN_LABEL_CLASS}>ID</span>
           <code className="rounded-sm bg-charcoal/5 px-3 py-2 font-mono text-sm">
             {initial!.id}
           </code>
         </div>
       )}
 
-      <div>
-        <label className="mb-2 block text-[0.7rem] uppercase tracking-[0.12em] text-warm-gray">
-          Categoría
-        </label>
-        <select
+      <AdminField label="Categoría">
+        <AdminSelect
           name="categorySlug"
           required
-          defaultValue={initial?.categorySlug}
-          className="w-full rounded-sm border border-charcoal/15 bg-white px-3 py-2.5 font-sans text-sm outline-none focus:border-charcoal/40"
+          defaultValue={
+            props.mode === "edit"
+              ? initial?.categorySlug
+              : defaultCategorySlug ?? ""
+          }
         >
           <option value="">— Elegir —</option>
           {props.categories.map((c) => (
@@ -83,101 +87,50 @@ export default function ProductForm(props: Props) {
               {c.name}
             </option>
           ))}
-        </select>
-      </div>
+        </AdminSelect>
+      </AdminField>
 
-      <div>
-        <label className="mb-2 block text-[0.7rem] uppercase tracking-[0.12em] text-warm-gray">
-          Nombre
-        </label>
-        <input
-          name="name"
-          required
-          defaultValue={initial?.name}
-          className="w-full rounded-sm border border-charcoal/15 bg-white px-3 py-2.5 font-sans text-sm outline-none focus:border-charcoal/40"
-        />
+      <AdminField label="Nombre">
+        <AdminInput name="name" required defaultValue={initial?.name} />
+      </AdminField>
+
+      <div className="grid gap-5 sm:grid-cols-2">
+        <AdminField label="Precio">
+          <AdminInput name="price" defaultValue={initial?.price} />
+        </AdminField>
+        <AdminField label="Dimensiones">
+          <AdminInput name="dimensions" defaultValue={initial?.dimensions} />
+        </AdminField>
       </div>
 
       <div className="grid gap-5 sm:grid-cols-2">
-        <div>
-          <label className="mb-2 block text-[0.7rem] uppercase tracking-[0.12em] text-warm-gray">
-            Precio
-          </label>
-          <input
-            name="price"
-            defaultValue={initial?.price}
-            className="w-full rounded-sm border border-charcoal/15 bg-white px-3 py-2.5 font-sans text-sm outline-none focus:border-charcoal/40"
-          />
-        </div>
-        <div>
-          <label className="mb-2 block text-[0.7rem] uppercase tracking-[0.12em] text-warm-gray">
-            Dimensiones
-          </label>
-          <input
-            name="dimensions"
-            defaultValue={initial?.dimensions}
-            className="w-full rounded-sm border border-charcoal/15 bg-white px-3 py-2.5 font-sans text-sm outline-none focus:border-charcoal/40"
-          />
-        </div>
+        <AdminField label="Madera">
+          <AdminInput name="wood" defaultValue={initial?.wood} />
+        </AdminField>
+        <AdminField label="Badge madera">
+          <AdminInput name="woodBadge" defaultValue={initial?.woodBadge} />
+        </AdminField>
       </div>
 
-      <div className="grid gap-5 sm:grid-cols-2">
-        <div>
-          <label className="mb-2 block text-[0.7rem] uppercase tracking-[0.12em] text-warm-gray">
-            Madera
-          </label>
-          <input
-            name="wood"
-            defaultValue={initial?.wood}
-            className="w-full rounded-sm border border-charcoal/15 bg-white px-3 py-2.5 font-sans text-sm outline-none focus:border-charcoal/40"
-          />
-        </div>
-        <div>
-          <label className="mb-2 block text-[0.7rem] uppercase tracking-[0.12em] text-warm-gray">
-            Badge madera
-          </label>
-          <input
-            name="woodBadge"
-            defaultValue={initial?.woodBadge}
-            className="w-full rounded-sm border border-charcoal/15 bg-white px-3 py-2.5 font-sans text-sm outline-none focus:border-charcoal/40"
-          />
-        </div>
-      </div>
-
-      <div>
-        <label className="mb-2 block text-[0.7rem] uppercase tracking-[0.12em] text-warm-gray">
-          Descripción corta
-        </label>
-        <textarea
+      <AdminField label="Descripción corta">
+        <AdminTextarea
           name="shortDescription"
           rows={2}
           defaultValue={initial?.shortDescription}
-          className="w-full rounded-sm border border-charcoal/15 bg-white px-3 py-2.5 font-sans text-sm outline-none focus:border-charcoal/40"
         />
-      </div>
+      </AdminField>
 
-      <div>
-        <label className="mb-2 block text-[0.7rem] uppercase tracking-[0.12em] text-warm-gray">
-          Descripción larga
-        </label>
-        <textarea
+      <AdminField label="Descripción larga">
+        <AdminTextarea
           name="description"
           rows={6}
           defaultValue={initial?.description}
-          className="w-full rounded-sm border border-charcoal/15 bg-white px-3 py-2.5 font-sans text-sm outline-none focus:border-charcoal/40"
         />
-      </div>
+      </AdminField>
 
-      <div>
-        <label className="mb-2 block text-[0.7rem] uppercase tracking-[0.12em] text-warm-gray">
-          Acabado
-        </label>
-        <input
-          name="finish"
-          defaultValue={initial?.finish}
-          className="w-full rounded-sm border border-charcoal/15 bg-white px-3 py-2.5 font-sans text-sm outline-none focus:border-charcoal/40"
-        />
-      </div>
+      <AdminField label="Acabado">
+        <AdminInput name="finish" defaultValue={initial?.finish} />
+      </AdminField>
 
       <AdminImageField
         name="image"
@@ -188,18 +141,14 @@ export default function ProductForm(props: Props) {
 
       <AdminGalleryField defaultLines={initial?.gallery ?? []} />
 
-      <div>
-        <label className="mb-2 block text-[0.7rem] uppercase tracking-[0.12em] text-warm-gray">
-          Características — una por línea
-        </label>
-        <textarea
+      <AdminField label="Características — una por línea">
+        <AdminTextarea
           name="features"
           rows={6}
           required
           defaultValue={initial?.features.join("\n")}
-          className="w-full rounded-sm border border-charcoal/15 bg-white px-3 py-2.5 font-sans text-sm outline-none focus:border-charcoal/40"
         />
-      </div>
+      </AdminField>
 
       <button
         type="submit"

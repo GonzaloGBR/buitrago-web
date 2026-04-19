@@ -1,9 +1,12 @@
 import HomeClient from "./home-client";
-import { getCategories } from "@/data/catalog";
+import { getCategories, getFeaturedHomeProducts } from "@/data/catalog";
 
 export const dynamic = "force-dynamic";
 
 export default async function Home() {
-  const categories = await getCategories();
-  return <HomeClient categories={categories} />;
+  const [categories, featured] = await Promise.all([
+    getCategories(),
+    getFeaturedHomeProducts(),
+  ]);
+  return <HomeClient categories={categories} featured={featured} />;
 }

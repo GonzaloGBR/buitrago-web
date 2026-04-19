@@ -1,6 +1,6 @@
 "use client";
 
-import { useFormState } from "react-dom";
+import { useActionState } from "react";
 import { useSearchParams } from "next/navigation";
 import {
   createCategoryAction,
@@ -8,6 +8,12 @@ import {
   type CategoryFormState,
 } from "@/app/admin/actions/categories";
 import AdminImageField from "@/components/admin/AdminImageField";
+import {
+  ADMIN_LABEL_CLASS,
+  AdminField,
+  AdminInput,
+  AdminTextarea,
+} from "@/components/admin/AdminFormControls";
 
 type Category = {
   slug: string;
@@ -25,7 +31,7 @@ export default function CategoryForm(props: Props) {
   const searchParams = useSearchParams();
   const ok = searchParams.get("ok");
 
-  const [state, formAction] = useFormState(
+  const [state, formAction] = useActionState(
     props.mode === "create"
       ? createCategoryAction
       : updateCategoryAction.bind(null, props.initial.slug),
@@ -48,63 +54,39 @@ export default function CategoryForm(props: Props) {
       ) : null}
 
       {props.mode === "create" ? (
-        <div>
-          <label className="mb-2 block text-[0.7rem] uppercase tracking-[0.12em] text-warm-gray">
-            Slug (URL) — no se puede cambiar después
-          </label>
-          <input
+        <AdminField label="Slug (URL) — no se puede cambiar después">
+          <AdminInput
             name="slug"
             required
             pattern="[a-z0-9]+(?:-[a-z0-9]+)*"
-            className="w-full rounded-sm border border-charcoal/15 bg-white px-3 py-2.5 font-mono text-sm outline-none focus:border-charcoal/40"
             placeholder="mesas-de-comedor"
+            variant="mono"
           />
-        </div>
+        </AdminField>
       ) : (
         <div>
-          <span className="mb-2 block text-[0.7rem] uppercase tracking-[0.12em] text-warm-gray">
-            Slug (solo lectura)
-          </span>
+          <span className={ADMIN_LABEL_CLASS}>Slug (solo lectura)</span>
           <code className="rounded-sm bg-charcoal/5 px-3 py-2 font-mono text-sm text-charcoal">
             {initial!.slug}
           </code>
         </div>
       )}
 
-      <div>
-        <label className="mb-2 block text-[0.7rem] uppercase tracking-[0.12em] text-warm-gray">
-          Nombre
-        </label>
-        <input
-          name="name"
-          required
-          defaultValue={initial?.name}
-          className="w-full rounded-sm border border-charcoal/15 bg-white px-3 py-2.5 font-sans text-sm outline-none focus:border-charcoal/40"
-        />
-      </div>
+      <AdminField label="Nombre">
+        <AdminInput name="name" required defaultValue={initial?.name} />
+      </AdminField>
 
-      <div>
-        <label className="mb-2 block text-[0.7rem] uppercase tracking-[0.12em] text-warm-gray">
-          Tagline
-        </label>
-        <input
-          name="tagline"
-          defaultValue={initial?.tagline}
-          className="w-full rounded-sm border border-charcoal/15 bg-white px-3 py-2.5 font-sans text-sm outline-none focus:border-charcoal/40"
-        />
-      </div>
+      <AdminField label="Tagline">
+        <AdminInput name="tagline" defaultValue={initial?.tagline} />
+      </AdminField>
 
-      <div>
-        <label className="mb-2 block text-[0.7rem] uppercase tracking-[0.12em] text-warm-gray">
-          Descripción
-        </label>
-        <textarea
+      <AdminField label="Descripción">
+        <AdminTextarea
           name="description"
           rows={4}
           defaultValue={initial?.description}
-          className="w-full rounded-sm border border-charcoal/15 bg-white px-3 py-2.5 font-sans text-sm outline-none focus:border-charcoal/40"
         />
-      </div>
+      </AdminField>
 
       <AdminImageField
         name="image"

@@ -57,6 +57,20 @@ async function main() {
       },
     });
   }
+
+  const featuredDefaults = [
+    { position: 1, productId: "comedor-raiz-viva" },
+    { position: 2, productId: "ratona-brasa" },
+    { position: 3, productId: "estante-linea" },
+    { position: 4, productId: "comedor-paramo" },
+  ] as const;
+  for (const row of featuredDefaults) {
+    await prisma.featuredProduct.upsert({
+      where: { position: row.position },
+      create: { position: row.position, productId: row.productId },
+      update: { productId: row.productId },
+    });
+  }
 }
 
 main()

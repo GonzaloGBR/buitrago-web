@@ -3,21 +3,27 @@
 import { useEffect, useRef, useState } from "react";
 import gsap from "gsap";
 import LogoMark from "@/components/LogoMark";
+import { MOODBOARD_ITEMS } from "@/components/MoodboardOverlay";
 
 type IntroOverlayProps = {
   onComplete: () => void;
 };
 
-const PRELOAD_IMAGES = [
-  "/hero-still-life.png",
-  "/hero-main.png",
-  "/collection-shelf.png",
-  "/collection-chair.png",
-  "/detail-joinery.png",
-  "/workshop.png",
-  "/collection-table.png",
-  "/logo-b-mark.png",
-];
+/**
+ * Activos críticos a tener en caché antes de soltar el contador al 100%:
+ *  - Hero (la primera imagen full-bleed visible al terminar la animación).
+ *  - Todas las imágenes del moodboard (vienen del propio componente para evitar duplicar la lista).
+ *  - Logo (se pinta como máscara, lo cargamos para no ver el rectángulo de fondo durante el primer paint).
+ *
+ * Deduplicado con `Set` por si el moodboard reutiliza alguna imagen del hero a futuro.
+ */
+const PRELOAD_IMAGES: string[] = Array.from(
+  new Set<string>([
+    "/hero-dining-room-hd.jpg",
+    ...MOODBOARD_ITEMS.map((m) => m.src),
+    "/logo-b-mark.png",
+  ])
+);
 
 function preloadImages(
   urls: string[],

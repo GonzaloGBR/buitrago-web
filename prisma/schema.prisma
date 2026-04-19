@@ -31,6 +31,14 @@ model Product {
   image            String
   features         Json
   gallery          Json
+  featuredAs       FeaturedProduct?
 
   @@index([categorySlug])
+}
+
+/// Las 4 piezas del bloque «Descubre nuestras piezas destacadas» (orden = position 1–4).
+model FeaturedProduct {
+  position  Int     @id
+  productId String  @unique
+  product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
 }

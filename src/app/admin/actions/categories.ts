@@ -88,6 +88,7 @@ export async function updateCategoryAction(
 
 export async function deleteCategoryAction(
   slug: string,
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   _formData?: FormData
 ): Promise<void> {
   await assertAdmin();

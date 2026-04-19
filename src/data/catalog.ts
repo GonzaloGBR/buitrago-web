@@ -88,3 +88,79 @@ export async function getAllCategorySlugs(): Promise<{ slug: string }[]> {
   const rows = await prisma.category.findMany({ select: { slug: true } });
   return rows;
 }
+
+export type FeaturedHomeItem = {
+  position: number;
+  productId: string;
+  categorySlug: string;
+  name: string;
+  price: string;
+  image: string;
+  href: string;
+};
+
+function featuredItemFromProduct(p: DbProduct, position: number): FeaturedHomeItem {
+  const prod = mapProduct(p);
+  return {
+    position,
+    productId: prod.id,
+    categorySlug: prod.categorySlug,
+    name: prod.name,
+    price: prod.price,
+    image: prod.image,
+    href: `/categoria/${prod.categorySlug}/${prod.id}`,
+  };
+}
+
+/** Piezas destacadas del home (máx. 4). Completa con otros productos si faltan filas en BD. */
+export async function getFeaturedHomeProducts(): Promise<FeaturedHomeItem[]> {
+  let rows: Awaited<
+    ReturnType<
+      typeof prisma.featuredProduct.findMany<{ include: { product: true } }>
+    >
+  > = [];
+  try {
+    rows = await prisma.featuredProduct.findMany({
+      orderBy: { position: "asc" },
+      include: { product: true },
+    });
+  } catch {
+    /* Tabla aún no existe: ejecutá `npx prisma db push` (o migrate). */
+  }
+  const mapped: FeaturedHomeItem[] = rows
+    .filter((r) => r.product)
+    .map((r) => featuredItemFromProduct(r.product, r.position));
+
+  if (mapped.length >= 4) {
+    return mapped.slice(0, 4);
+  }
+
+  const used = new Set(mapped.map((m) => m.productId));
+  const need = 4 - mapped.length;
+  const extras = await prisma.product.findMany({
+    ...(used.size > 0 ? { where: { id: { notIn: [...used] } } } : {}),
+    orderBy: [{ categorySlug: "asc" }, { name: "asc" }],
+    take: need,
+  });
+
+  let nextPos = mapped.length + 1;
+  for (const row of extras) {
+    mapped.push(featuredItemFromProduct(row, nextPos));
+    nextPos += 1;
+  }
+
+  return mapped.slice(0, 4);
+}
+
+export async function getFeaturedProductIds(): Promise<
+  { position: number; productId: string }[]
+> {
+  try {
+    return await prisma.featuredProduct.findMany({
+      orderBy: { position: "asc" },
+      select: { position: true, productId: true },
+    });
+  } catch {
+    return [];
+  }
+}

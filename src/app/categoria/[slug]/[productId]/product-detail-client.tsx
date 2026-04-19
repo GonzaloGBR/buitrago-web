@@ -44,30 +44,34 @@ export default function ProductDetailClient({
 
   return (
     <main className="min-h-screen bg-cream">
-      <div className="section-editorial pt-6 pb-2">
+      <div className="section-editorial pt-5 pb-2 sm:pt-6">
         <Link
           href={`/categoria/${slug}`}
-          className="inline-flex items-center gap-2.5 font-sans text-[0.8rem] text-charcoal/60 no-underline transition-colors hover:text-charcoal"
+          className="inline-flex items-center gap-2 font-sans text-[0.72rem] text-charcoal/60 no-underline transition-colors hover:text-charcoal sm:gap-2.5 sm:text-[0.8rem]"
         >
-          <span className="flex h-8 w-8 items-center justify-center rounded-full border border-charcoal/15 text-[0.85rem]">
+          <span className="flex h-7 w-7 items-center justify-center rounded-full border border-charcoal/15 text-[0.8rem] sm:h-8 sm:w-8 sm:text-[0.85rem]">
             ‹
           </span>
-          Volver a {category.name}
+          <span className="truncate">Volver a {category.name}</span>
         </Link>
 
-        <nav className="mt-3 font-sans text-[0.7rem] text-warm-gray">
-          <Link href="/" className="no-underline hover:text-charcoal transition-colors">Inicio</Link>
-          <span className="mx-1.5">/</span>
-          <Link href="/#categorías" className="no-underline hover:text-charcoal transition-colors">Categorías</Link>
-          <span className="mx-1.5">/</span>
+        <nav className="mt-3 flex flex-wrap items-center gap-x-1.5 gap-y-1 font-sans text-[0.65rem] text-warm-gray sm:text-[0.7rem]">
+          <Link href="/" className="no-underline hover:text-charcoal transition-colors">
+            Inicio
+          </Link>
+          <span>/</span>
+          <Link href="/#categorías" className="no-underline hover:text-charcoal transition-colors">
+            Categorías
+          </Link>
+          <span>/</span>
           <Link href={`/categoria/${slug}`} className="no-underline hover:text-charcoal transition-colors">{category.name}</Link>
-          <span className="mx-1.5">/</span>
+          <span>/</span>
           <span className="text-charcoal">{product.name}</span>
         </nav>
       </div>
 
-      <section className="section-editorial pt-6 pb-16 md:pb-24">
-        <div className="grid grid-cols-1 items-start gap-10 md:grid-cols-[5.5rem_1fr_1fr] md:gap-6 lg:gap-10">
+      <section className="section-editorial pt-5 pb-12 sm:pt-6 sm:pb-16 md:pb-24">
+        <div className="grid grid-cols-1 items-start gap-8 sm:gap-10 md:grid-cols-[5.5rem_1fr_1fr] md:gap-6 lg:gap-10">
           <div className="hidden flex-col gap-2.5 md:flex">
             {product.gallery.map((src, i) => (
               <button
@@ -134,31 +138,31 @@ export default function ProductDetailClient({
               <span className="h-[1px] w-6 bg-charcoal/30" />
             </div>
 
-            <h1 className="heading-editorial text-3xl text-charcoal md:text-4xl lg:text-[2.6rem]">
+            <h1 className="heading-editorial text-[clamp(1.75rem,6.5vw,2.6rem)] text-charcoal md:text-4xl lg:text-[2.6rem]">
               {product.name}
             </h1>
 
-            <p className="heading-editorial mt-3 text-2xl text-charcoal/70 md:text-[1.65rem]">
+            <p className="heading-editorial mt-3 text-xl text-charcoal/70 sm:text-2xl md:text-[1.65rem]">
               {product.price}
             </p>
 
-            <p className="text-body-elegant mt-6 text-warm-gray text-[0.88rem] leading-[1.7]">
+            <p className="text-body-elegant mt-5 text-[0.85rem] leading-[1.7] text-warm-gray sm:mt-6 sm:text-[0.88rem]">
               {product.description}
             </p>
 
-            <div className="mt-8 grid grid-cols-2 gap-6 border-y border-sand/40 py-6">
+            <div className="mt-7 grid grid-cols-2 gap-5 border-y border-sand/40 py-5 sm:mt-8 sm:gap-6 sm:py-6">
               <div>
                 <span className="text-label mb-2 block text-warm-gray">Dimensiones</span>
-                <div className="flex items-center gap-2 font-sans text-[0.82rem] text-charcoal">
+                <div className="flex items-center gap-2 font-sans text-[0.78rem] text-charcoal sm:text-[0.82rem]">
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="shrink-0 text-warm-gray">
                     <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z" />
                   </svg>
-                  {product.dimensions}
+                  <span className="break-words">{product.dimensions}</span>
                 </div>
               </div>
               <div>
                 <span className="text-label mb-2 block text-warm-gray">Acabado</span>
-                <p className="font-sans text-[0.82rem] text-charcoal leading-snug">
+                <p className="font-sans text-[0.78rem] leading-snug text-charcoal sm:text-[0.82rem]">
                   {product.finish}
                 </p>
               </div>
@@ -168,17 +172,17 @@ export default function ProductDetailClient({
               <span className="text-label mb-4 block text-warm-gray">Características destacadas</span>
               <ul className="space-y-2.5">
                 {product.features.map((feat, i) => (
-                  <li key={i} className="flex items-start gap-2.5 font-sans text-[0.82rem] text-charcoal/80">
+                  <li key={i} className="flex items-start gap-2.5 font-sans text-[0.8rem] text-charcoal/80 sm:text-[0.82rem]">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="mt-0.5 shrink-0 text-gold">
                       <path d="M20 6L9 17l-5-5" />
                     </svg>
-                    {feat}
+                    <span>{feat}</span>
                   </li>
                 ))}
               </ul>
             </div>
 
-            <div className="mt-10 flex flex-col gap-3 sm:flex-row">
+            <div className="mt-8 flex flex-col gap-3 sm:mt-10 sm:flex-row">
               <a
                 href={whatsappUrl}
                 target="_blank"
@@ -207,11 +211,11 @@ export default function ProductDetailClient({
       </section>
 
       {similarProducts.length > 0 && (
-        <section className="section-editorial border-t border-sand/30 pb-20 pt-14 md:pb-28">
-          <div className="mb-8 flex items-end justify-between">
+        <section className="section-editorial border-t border-sand/30 pb-16 pt-12 sm:pb-20 sm:pt-14 md:pb-28">
+          <div className="mb-6 flex flex-col gap-3 sm:mb-8 sm:flex-row sm:items-end sm:justify-between">
             <div>
               <span className="text-label mb-2 block text-warm-gray">Descubre más</span>
-              <h2 className="heading-editorial text-2xl text-charcoal md:text-3xl">
+              <h2 className="heading-editorial text-xl text-charcoal sm:text-2xl md:text-3xl">
                 Productos Similares
               </h2>
             </div>
@@ -237,14 +241,22 @@ export default function ProductDetailClient({
                     className="object-cover transition-transform duration-[1.4s] ease-[cubic-bezier(0.19,1,0.22,1)] group-hover:scale-[1.04]"
                     sizes="(max-width: 768px) 50vw, 33vw"
                   />
-                  <span className="absolute left-3 top-3 rounded-sm bg-charcoal/80 px-3 py-1.5 font-sans text-[0.6rem] font-medium uppercase tracking-[0.15em] text-cream/95 backdrop-blur-sm">
+                  <span className="absolute left-2 top-2 rounded-sm bg-charcoal/80 px-2 py-1 font-sans text-[0.55rem] font-medium uppercase tracking-[0.12em] text-cream/95 backdrop-blur-sm sm:left-3 sm:top-3 sm:px-3 sm:py-1.5 sm:text-[0.6rem] sm:tracking-[0.15em]">
                     {p.woodBadge}
                   </span>
                 </div>
-                <h3 className="heading-editorial mt-4 text-lg text-charcoal">{p.name}</h3>
-                <p className="mt-1 font-serif text-base text-charcoal/70">{p.price}</p>
+                <h3 className="heading-editorial mt-3 text-base text-charcoal sm:mt-4 sm:text-lg">{p.name}</h3>
+                <p className="mt-1 font-serif text-sm text-charcoal/70 sm:text-base">{p.price}</p>
               </Link>
             ))}
+          </div>
+          <div className="mt-6 flex justify-center md:hidden">
+            <Link
+              href={`/categoria/${slug}`}
+              className="inline-flex items-center gap-1.5 font-serif text-sm italic text-gold no-underline transition-colors hover:text-gold-dark"
+            >
+              Ver colección completa →
+            </Link>
           </div>
         </section>
       )}

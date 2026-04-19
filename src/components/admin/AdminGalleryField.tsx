@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { uploadProductImage } from "@/app/admin/actions/upload";
+import { AdminLabel, AdminTextarea } from "@/components/admin/AdminFormControls";
 
 type Props = {
   /** URLs iniciales (modo edición). */
@@ -39,16 +40,15 @@ export default function AdminGalleryField({ defaultLines }: Props) {
 
   return (
     <div className="space-y-2">
-      <label className="block text-[0.7rem] font-medium uppercase tracking-[0.12em] text-warm-gray">
-        Galería — varias fotos del producto
-      </label>
-      <textarea
+      <AdminLabel>Galería — varias fotos del producto</AdminLabel>
+      <AdminTextarea
         name="gallery"
         rows={6}
         required
         value={text}
         onChange={(e) => setText(e.target.value)}
-        className="w-full rounded-sm border border-charcoal/15 bg-white px-3 py-2.5 font-mono text-xs outline-none focus:border-charcoal/40"
+        variant="mono"
+        textSize="xs"
         placeholder={"/uploads/foto-1.jpg\n/uploads/foto-2.jpg"}
       />
       <div className="flex flex-wrap items-center gap-3">

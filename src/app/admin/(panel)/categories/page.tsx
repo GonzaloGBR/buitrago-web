@@ -56,6 +56,12 @@ export default async function AdminCategoriesPage({
                 <td className="px-4 py-3">{c.name}</td>
                 <td className="px-4 py-3 text-right">
                   <Link
+                    href={`/admin/products?categoria=${encodeURIComponent(c.slug)}`}
+                    className="mr-4 font-sans text-xs text-charcoal/60 underline decoration-charcoal/20 underline-offset-2 hover:text-charcoal"
+                  >
+                    Productos
+                  </Link>
+                  <Link
                     href={`/admin/categories/${c.slug}/edit`}
                     className="mr-4 text-gold hover:text-gold-dark"
                   >

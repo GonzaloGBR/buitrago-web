@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useLayoutEffect, useRef } from "react";
 import Image from "next/image";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
@@ -23,20 +23,49 @@ export default function Hero({ animateIn, onHeroReady }: HeroProps) {
   const mouseLayerRef = useRef<HTMLDivElement>(null);
   const didAnimate = useRef(false);
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     if (!animateIn || didAnimate.current) return;
-    didAnimate.current = true;
 
-    const section = sectionRef.current;
-    const heroScale = heroScaleRef.current;
-    const ov = overlayRef.current;
-    const titleBlock = titleBlockRef.current;
-    const line1 = titleLine1Ref.current;
-    const line2 = titleLine2Ref.current;
-    const cta = ctaRef.current;
-    const mouseLayer = mouseLayerRef.current;
+    let cancelled = false;
+    let rafId = 0;
+    let master: gsap.core.Timeline | null = null;
+    const scrollTriggers: ScrollTrigger[] = [];
+    let moveHandler: ((e: PointerEvent) => void) | null = null;
+    let leaveHandler: (() => void) | null = null;
+    let sectionForCleanup: HTMLElement | null = null;
 
-    if (!section || !heroScale) return;
+    let attempts = 0;
+    const MAX_REF_ATTEMPTS = 120;
+
+    const tryRun = () => {
+      if (cancelled || didAnimate.current) return;
+
+      const section = sectionRef.current;
+      const heroScale = heroScaleRef.current;
+      const ov = overlayRef.current;
+      const titleBlock = titleBlockRef.current;
+      const line1 = titleLine1Ref.current;
+      const line2 = titleLine2Ref.current;
+      const cta = ctaRef.current;
+      const mouseLayer = mouseLayerRef.current;
+
+      if (!section || !heroScale) {
+        if (++attempts >= MAX_REF_ATTEMPTS) {
+          didAnimate.current = true;
+          onHeroReady();
+          return;
+        }
+        rafId = requestAnimationFrame(tryRun);
+        return;
+      }
+
+      didAnimate.current = true;
+      sectionForCleanup = section;
+
+    gsap.set(heroScale, {
+      scale: 1.12,
+      transformOrigin: "50% 50%",
+    });
 
     if (ov) gsap.set(ov, { opacity: 0 });
     if (titleBlock) gsap.set(titleBlock, { opacity: 0 });
@@ -44,45 +73,45 @@ export default function Hero({ animateIn, onHeroReady }: HeroProps) {
     if (line2) gsap.set(line2.querySelectorAll(".hero-word"), { y: "110%", opacity: 0 });
     if (cta) gsap.set(cta, { y: 40, opacity: 0 });
 
-    const master = gsap.timeline();
-
-    master.to(heroScale, { scale: 1, duration: 2, ease: "power2.out" }, 0);
+    const tl = gsap.timeline();
+    master = tl;
+    tl.to(
+      heroScale,
+      { scale: 1, duration: 2, ease: "power2.out" },
+      0
+    );
 
     if (ov) {
-      master.to(ov, { opacity: 1, duration: 1.2, ease: "power2.inOut" }, 0.4);
+      tl.to(ov, { opacity: 1, duration: 1.2, ease: "power2.inOut" }, 0.4);
     }
 
     const textStart = 1.0;
 
     if (titleBlock) {
-      master.to(titleBlock, { opacity: 1, duration: 0.01 }, textStart);
+      tl.to(titleBlock, { opacity: 1, duration: 0.01 }, textStart);
     }
 
     if (line1) {
       const words1 = line1.querySelectorAll<HTMLSpanElement>(".hero-word");
       words1.forEach((w, i) => {
-        master.to(w, { y: "0%", opacity: 1, duration: 0.9, ease: "power4.out" }, textStart + 0.05 + i * 0.08);
+        tl.to(w, { y: "0%", opacity: 1, duration: 0.9, ease: "power4.out" }, textStart + 0.05 + i * 0.08);
       });
     }
 
     if (line2) {
       const words2 = line2.querySelectorAll<HTMLSpanElement>(".hero-word");
       words2.forEach((w, i) => {
-        master.to(w, { y: "0%", opacity: 1, duration: 0.9, ease: "power4.out" }, textStart + 0.2 + i * 0.08);
+        tl.to(w, { y: "0%", opacity: 1, duration: 0.9, ease: "power4.out" }, textStart + 0.2 + i * 0.08);
       });
     }
 
     if (cta) {
-      master.to(cta, { y: 0, opacity: 1, duration: 0.8, ease: "power3.out" }, textStart + 0.5);
+      tl.to(cta, { y: 0, opacity: 1, duration: 0.8, ease: "power3.out" }, textStart + 0.5);
     }
 
-    master.call(() => { onHeroReady(); }, undefined, textStart + 0.6);
+    tl.call(() => { onHeroReady(); }, undefined, textStart + 0.6);
 
-    let scrollTriggers: ScrollTrigger[] = [];
-    let moveHandler: ((e: PointerEvent) => void) | null = null;
-    let leaveHandler: (() => void) | null = null;
-
-    master.call(() => {
+    tl.call(() => {
       const stImage = ScrollTrigger.create({
         trigger: section,
         start: "top top",
@@ -91,8 +120,9 @@ export default function Hero({ animateIn, onHeroReady }: HeroProps) {
         onUpdate: (self) => {
           const p = self.progress;
           gsap.set(heroScale, {
-            yPercent: gsap.utils.interpolate(0, 14, p),
-            scale: gsap.utils.interpolate(1, 1.07, p),
+            yPercent: gsap.utils.interpolate(0, 10, p),
+            scale: gsap.utils.interpolate(1, 1.045, p),
+            transformOrigin: "50% 50%",
           });
         },
       });
@@ -117,30 +147,50 @@ export default function Hero({ animateIn, onHeroReady }: HeroProps) {
 
       const fine = window.matchMedia("(pointer: fine)").matches;
       if (fine && mouseLayer) {
-        const xTo = gsap.quickTo(mouseLayer, "x", { duration: 0.9, ease: "power3.out" });
-        const yTo = gsap.quickTo(mouseLayer, "y", { duration: 0.9, ease: "power3.out" });
+        /* Misma suavidad en X e Y; un poco más rápido para que el vertical no “se arrastre”. */
+        const quickOpts = { duration: 0.55, ease: "power3.out" as const };
+        const xTo = gsap.quickTo(mouseLayer, "x", quickOpts);
+        const yTo = gsap.quickTo(mouseLayer, "y", quickOpts);
+
+        const maxPan = 44;
 
         moveHandler = (e: PointerEvent) => {
           const r = section.getBoundingClientRect();
           const cx = r.left + r.width / 2;
           const cy = r.top + r.height / 2;
-          xTo((e.clientX - cx) / (r.width / 2) * 40);
-          yTo((e.clientY - cy) / (r.height / 2) * 30);
+          const halfW = r.width / 2 || 1;
+          const halfH = r.height / 2 || 1;
+          /* Normalizado -1…1 desde el centro del hero */
+          const nx = gsap.utils.clamp(-1, 1, (e.clientX - cx) / halfW);
+          const ny = gsap.utils.clamp(-1, 1, (e.clientY - cy) / halfH);
+          /* Signo opuesto al desplazamiento en px: así la foto “sigue” al cursor (derecha → imagen a la derecha). */
+          xTo(-nx * maxPan);
+          yTo(-ny * maxPan);
         };
-        leaveHandler = () => { xTo(0); yTo(0); };
+        leaveHandler = () => {
+          xTo(0);
+          yTo(0);
+        };
         section.addEventListener("pointermove", moveHandler);
         section.addEventListener("pointerleave", leaveHandler);
       }
 
       ScrollTrigger.refresh();
     });
+    };
+
+    tryRun();
 
     return () => {
-      master.kill();
-      scrollTriggers.forEach((t) => t.kill());
-      if (section && moveHandler) {
-        section.removeEventListener("pointermove", moveHandler);
-        section.removeEventListener("pointerleave", leaveHandler!);
+      cancelled = true;
+      cancelAnimationFrame(rafId);
+      if (master) {
+        master.kill();
+        scrollTriggers.forEach((t) => t.kill());
+        if (sectionForCleanup && moveHandler) {
+          sectionForCleanup.removeEventListener("pointermove", moveHandler);
+          sectionForCleanup.removeEventListener("pointerleave", leaveHandler!);
+        }
       }
       didAnimate.current = false;
     };
@@ -153,26 +203,30 @@ export default function Hero({ animateIn, onHeroReady }: HeroProps) {
     <section
       ref={sectionRef}
       id="hero"
-      className="relative z-0 h-screen w-full overflow-hidden bg-black"
+      className="relative z-0 h-screen min-h-[600px] w-full overflow-hidden bg-[#1a1816] [height:100svh]"
     >
       <div className="absolute inset-0">
-        <div className="absolute inset-0 h-[118%] w-full" style={{ top: "-9%" }}>
-          <div
-            ref={mouseLayerRef}
-            className="absolute inset-0 h-full w-full will-change-transform"
-          >
+        {/*
+          Capa más ancha/alta que el viewport: cuando mouseLayer se desplaza con el
+          parallax, sigue habiendo foto detrás y no se ve el fondo negro del section.
+        */}
+        <div
+          ref={mouseLayerRef}
+          className="absolute inset-0 will-change-transform"
+        >
+          <div className="pointer-events-none absolute left-1/2 top-1/2 h-[118%] w-[118%] -translate-x-1/2 -translate-y-1/2">
             <div
               ref={heroScaleRef}
-              className="relative h-full w-full will-change-transform"
-              style={{ transform: "scale(1.35)" }}
+              className="relative h-full w-full origin-center scale-[1.12] will-change-transform"
             >
               <Image
-                src="/hero-still-life.png"
-                alt="Ambiente artesanal con madera noble y piezas Buitrago"
+                src="/hero-dining-room-hd.jpg"
+                alt="Ambiente con madera noble y diseño de interiores"
                 fill
-                className="object-cover object-[32%_center]"
                 priority
+                quality={90}
                 sizes="100vw"
+                className="object-cover object-center md:object-[50%_42%]"
               />
             </div>
           </div>
@@ -180,14 +234,14 @@ export default function Hero({ animateIn, onHeroReady }: HeroProps) {
 
         <div
           ref={overlayRef}
-          className="pointer-events-none absolute inset-0 bg-gradient-to-t from-charcoal/80 via-charcoal/40 to-charcoal/20"
+          className="pointer-events-none absolute inset-0 bg-[linear-gradient(to_top,rgba(22,20,18,0.42)_0%,rgba(22,20,18,0.1)_28%,rgba(22,20,18,0.03)_45%,transparent_58%)]"
           style={{ opacity: 0 }}
         />
       </div>
 
       <div
         ref={titleBlockRef}
-        className="absolute inset-0 z-10 flex flex-col items-center justify-center px-5 md:px-10"
+        className="absolute inset-0 z-10 flex flex-col items-center justify-center px-5 pb-[env(safe-area-inset-bottom,0px)] md:px-10"
         style={{ opacity: 0 }}
       >
         <div className="mx-auto max-w-[min(94vw,52rem)] text-center">

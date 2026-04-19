@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Playfair_Display, Inter, Cormorant } from "next/font/google";
 import SmoothScroll from "@/components/SmoothScroll";
 import "./globals.css";
@@ -28,6 +28,16 @@ export const metadata: Metadata = {
   title: "Buitrago — Muebles Artesanales de Lujo",
   description:
     "Carpintería artesanal de alta gama. Creamos piezas únicas que transforman espacios con la calidez y nobleza de la madera.",
+};
+
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  viewportFit: "cover",
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: "#F7F5F0" },
+    { media: "(prefers-color-scheme: dark)", color: "#1A1A1A" },
+  ],
 };
 
 export default function RootLayout({

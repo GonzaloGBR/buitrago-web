@@ -2,7 +2,14 @@
 
 import { deleteProductAction } from "@/app/admin/actions/products";
 
-export default function DeleteProductForm({ productId }: { productId: string }) {
+export default function DeleteProductForm({
+  productId,
+  categorySlug,
+}: {
+  productId: string;
+  /** Para volver al listado filtrado tras eliminar. */
+  categorySlug?: string;
+}) {
   return (
     <form
       action={deleteProductAction.bind(null, productId)}
@@ -12,6 +19,9 @@ export default function DeleteProductForm({ productId }: { productId: string }) 
         }
       }}
     >
+      {categorySlug ? (
+        <input type="hidden" name="returnCategoria" value={categorySlug} />
+      ) : null}
       <button
         type="submit"
         className="font-sans text-xs text-red-700 underline hover:text-red-900"

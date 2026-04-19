@@ -18,14 +18,18 @@ export default async function EditProductPage({
   ]);
   if (!product) notFound();
 
+  const backToProductsHref = `/admin/products?categoria=${encodeURIComponent(
+    product.categorySlug
+  )}`;
+
   return (
     <div className="space-y-8">
       <div>
         <Link
-          href="/admin/products"
+          href={backToProductsHref}
           className="font-sans text-sm text-warm-gray hover:text-charcoal"
         >
-          ← Volver a productos
+          ← Volver a productos de esta categoría
         </Link>
         <h1 className="mt-4 font-serif text-3xl text-charcoal">
           Editar producto

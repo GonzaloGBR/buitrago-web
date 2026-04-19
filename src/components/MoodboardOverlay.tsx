@@ -15,7 +15,16 @@ interface MoodboardItem {
   zIndex: number;
 }
 
-const MOODBOARD_ITEMS: MoodboardItem[] = [
+/** Ritmo del collage + pausa antes del slide: un poco más ágil (~1.5s menos hasta el hero). */
+const CARD_STAGGER = 0.38;
+const CARD_DURATION = 1.12;
+const SLIDE_UP_DURATION = 1;
+
+/**
+ * Imágenes que componen el collage del moodboard. `IntroOverlay` las precarga (junto al hero
+ * y el logo) para que la transición al moodboard sea instantánea.
+ */
+export const MOODBOARD_ITEMS: MoodboardItem[] = [
   {
     src: "/collection-shelf.png", alt: "Estante artesanal",
     finalX: "8%", finalY: "12%", width: "clamp(140px, 20vw, 280px)", height: "clamp(180px, 26vw, 360px)",
@@ -42,7 +51,7 @@ const MOODBOARD_ITEMS: MoodboardItem[] = [
     rotation: -2, zIndex: 5,
   },
   {
-    src: "/hero-main.png", alt: "Interior con muebles Buitrago",
+    src: "/hero-dining-room-hd.jpg", alt: "Interior con muebles Buitrago",
     finalX: "42%", finalY: "40%", width: "clamp(170px, 24vw, 340px)", height: "clamp(140px, 18vw, 260px)",
     rotation: 1.5, zIndex: 6,
   },
@@ -50,10 +59,16 @@ const MOODBOARD_ITEMS: MoodboardItem[] = [
 
 type Props = {
   startAnimation: boolean;
+  /** Se llama en el primer frame del deslizamiento hacia arriba (el hero ya se ve debajo). */
+  onRevealStart?: () => void;
   onComplete: () => void;
 };
 
-export default function MoodboardOverlay({ startAnimation, onComplete }: Props) {
+export default function MoodboardOverlay({
+  startAnimation,
+  onRevealStart,
+  onComplete,
+}: Props) {
   const rootRef = useRef<HTMLDivElement>(null);
   const innerRef = useRef<HTMLDivElement>(null);
   const cardsRef = useRef<(HTMLDivElement | null)[]>([]);
@@ -89,14 +104,14 @@ export default function MoodboardOverlay({ startAnimation, onComplete }: Props) 
 
     cards.forEach((card, i) => {
       const item = MOODBOARD_ITEMS[i];
-      const start = i * 0.45;
+      const start = i * CARD_STAGGER;
 
       tl.to(card, {
         scale: 1, opacity: 1,
         left: item.finalX, top: item.finalY,
         xPercent: 0, yPercent: 0,
         rotation: item.rotation,
-        duration: 1.3, ease: "power2.out",
+        duration: CARD_DURATION, ease: "power2.out",
       }, start);
 
       if (counterRef.current) {
@@ -104,17 +119,20 @@ export default function MoodboardOverlay({ startAnimation, onComplete }: Props) 
       }
     });
 
-    tl.to(counterRef.current, { opacity: 0, duration: 0.4, ease: "power2.inOut" }, "-=0.2");
+    tl.to(counterRef.current, { opacity: 0, duration: 0.28, ease: "power2.inOut" }, "-=0.28");
 
     tl.to(root, {
       yPercent: -100,
-      duration: 1.4,
+      duration: SLIDE_UP_DURATION,
       ease: "power3.inOut",
+      onStart: () => {
+        onRevealStart?.();
+      },
       onComplete,
-    }, "+=0.6");
+    }, "+=0");
 
     return () => { tl.kill(); };
-  }, [startAnimation, onComplete]);
+  }, [startAnimation, onComplete, onRevealStart]);
 
   return (
     <div

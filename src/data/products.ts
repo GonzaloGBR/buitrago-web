@@ -28,7 +28,7 @@ export const categories: Category[] = [
     name: "Puertas",
     tagline: "Umbrales con carácter",
     description: "Puertas que marcan umbrales con carácter. Madera masiva, herrajes discretos y proporción impecable.",
-    image: "/hero-main.png",
+    image: "/hero-dining-room-hd.jpg",
   },
   {
     slug: "mesas-de-arrime",
@@ -75,8 +75,8 @@ export const products: Product[] = [
     description: "Línea recta y presencia rotunda. Base de madera maciza con ensamble de espiga pasante a la vista. Acabado mate con cera microcristalina que protege sin alterar el tono natural del roble.",
     finish: "Cera microcristalina mate",
     features: ["Ensamble de espiga pasante", "Base de madera maciza", "Madera secada al horno", "Soporta hasta 450kg", "Acabado mate profesional"],
-    image: "/hero-main.png",
-    gallery: ["/hero-main.png", "/detail-joinery.png", "/workshop.png", "/hero-main.png"],
+    image: "/hero-dining-room-hd.jpg",
+    gallery: ["/hero-dining-room-hd.jpg", "/detail-joinery.png", "/workshop.png", "/hero-dining-room-hd.jpg"],
   },
   {
     id: "comedor-terruño",
@@ -105,8 +105,8 @@ export const products: Product[] = [
     description: "Gran tablón de corte tangencial con vetas oscuras pronunciadas. Base en cruz maciza. Acabado al aceite danés que nutre la madera y resalta su carácter natural.",
     finish: "Aceite danés de penetración profunda",
     features: ["Corte tangencial exclusivo", "Base en cruz maciza", "Madera secada al horno", "Soporta hasta 500kg", "Vetas oscuras pronunciadas"],
-    image: "/hero-main.png",
-    gallery: ["/hero-main.png", "/collection-table.png", "/detail-joinery.png", "/hero-main.png"],
+    image: "/hero-dining-room-hd.jpg",
+    gallery: ["/hero-dining-room-hd.jpg", "/collection-table.png", "/detail-joinery.png", "/hero-dining-room-hd.jpg"],
   },
 
   // ── Mesas Ratonas ──
@@ -230,7 +230,7 @@ export const products: Product[] = [
     finish: "Lustre a muñeca con terminación satinada",
     features: ["Cabecera tallada a mano", "Ensamble caja y espiga", "Madera secada al horno", "Soporta hasta 350kg", "Incluye largueros reforzados"],
     image: "/workshop.png",
-    gallery: ["/workshop.png", "/hero-main.png", "/detail-joinery.png", "/workshop.png"],
+    gallery: ["/workshop.png", "/hero-dining-room-hd.jpg", "/detail-joinery.png", "/workshop.png"],
   },
 
   // ── Puertas ──
@@ -246,8 +246,8 @@ export const products: Product[] = [
     description: "Puerta placa maciza de una hoja sin molduras. Canto vivo y bisagras ocultas. Minimalismo y solidez en cada centímetro.",
     finish: "Lustre poliuretánico satinado",
     features: ["Bisagras ocultas", "Canto vivo", "Sin molduras", "Madera secada al horno", "Espesor 4.5cm"],
-    image: "/hero-main.png",
-    gallery: ["/hero-main.png", "/detail-joinery.png", "/workshop.png", "/hero-main.png"],
+    image: "/hero-dining-room-hd.jpg",
+    gallery: ["/hero-dining-room-hd.jpg", "/detail-joinery.png", "/workshop.png", "/hero-dining-room-hd.jpg"],
   },
   {
     id: "puerta-granero",
@@ -261,8 +261,8 @@ export const products: Product[] = [
     description: "Corrediza tipo granero con riel de hierro a la vista. Tablones horizontales con ensamble de lengüeta. Rústica y elegante a partes iguales.",
     finish: "Acabado envejecido natural",
     features: ["Riel de hierro incluido", "Tablones horizontales", "Ensamble de lengüeta", "Madera secada al horno", "Sistema corredizo silencioso"],
-    image: "/hero-main.png",
-    gallery: ["/hero-main.png", "/workshop.png", "/detail-joinery.png", "/hero-main.png"],
+    image: "/hero-dining-room-hd.jpg",
+    gallery: ["/hero-dining-room-hd.jpg", "/workshop.png", "/detail-joinery.png", "/hero-dining-room-hd.jpg"],
   },
   {
     id: "puerta-celosia",
@@ -277,7 +277,7 @@ export const products: Product[] = [
     finish: "Acabado blanqueado con protección",
     features: ["Celosía para filtrado de luz", "Panel inferior macizo", "Acabado blanqueado", "Madera secada al horno", "Herrajes de acero inoxidable"],
     image: "/collection-shelf.png",
-    gallery: ["/collection-shelf.png", "/hero-main.png", "/detail-joinery.png", "/collection-shelf.png"],
+    gallery: ["/collection-shelf.png", "/hero-dining-room-hd.jpg", "/detail-joinery.png", "/collection-shelf.png"],
   },
   {
     id: "puerta-doble-hoja",
@@ -291,8 +291,8 @@ export const products: Product[] = [
     description: "Par de hojas simétricas con tirador embutido en la madera. Ideales como separador de ambientes. Imponentes y sutiles al mismo tiempo.",
     finish: "Lustre a muñeca con terminación brillante",
     features: ["Tirador embutido en madera", "Dos hojas simétricas", "Separador de ambientes", "Madera secada al horno", "Incluye marco completo"],
-    image: "/hero-main.png",
-    gallery: ["/hero-main.png", "/workshop.png", "/collection-shelf.png", "/hero-main.png"],
+    image: "/hero-dining-room-hd.jpg",
+    gallery: ["/hero-dining-room-hd.jpg", "/workshop.png", "/collection-shelf.png", "/hero-dining-room-hd.jpg"],
   },
 
   // ── Mesas de Arrime ──

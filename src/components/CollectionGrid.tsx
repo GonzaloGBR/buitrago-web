@@ -1,40 +1,19 @@
 "use client";
 
 import { useEffect, useRef } from "react";
-import Image from "next/image";
+import Link from "next/link";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
+import CatalogImage from "@/components/CatalogImage";
+import type { FeaturedHomeItem } from "@/data/catalog";
 
 gsap.registerPlugin(ScrollTrigger);
 
-const products = [
-  {
-    id: 1,
-    name: "Sillón Artesano",
-    price: "$2.490",
-    image: "/collection-chair.png",
-  },
-  {
-    id: 2,
-    name: "Mesa Raíz Viva",
-    price: "$4.990",
-    image: "/collection-table.png",
-  },
-  {
-    id: 3,
-    name: "Estantería Línea",
-    price: "$3.890",
-    image: "/collection-shelf.png",
-  },
-  {
-    id: 4,
-    name: "Mesa de Comedor",
-    price: "$5.490",
-    image: "/hero-main.png",
-  },
-];
+type Props = {
+  items: FeaturedHomeItem[];
+};
 
-export default function FeaturedProducts() {
+export default function FeaturedProducts({ items }: Props) {
   const sectionRef = useRef<HTMLElement>(null);
   const titleRef = useRef<HTMLHeadingElement>(null);
   const cardsRef = useRef<HTMLDivElement[]>([]);
@@ -107,7 +86,7 @@ export default function FeaturedProducts() {
     <section
       ref={sectionRef}
       id="colección"
-      className="section-editorial section-y-loose"
+      className="section-editorial pt-[4.5rem] pb-12 md:pt-[6.5rem] md:pb-16"
     >
       <h2
         ref={titleRef}
@@ -119,31 +98,36 @@ export default function FeaturedProducts() {
       </h2>
 
       <div className="grid grid-cols-2 gap-4 md:grid-cols-4 md:gap-7">
-        {products.map((product, i) => (
+        {items.map((product, i) => (
           <div
-            key={product.id}
+            key={`${product.productId}-${i}`}
             ref={(el) => {
               if (el) cardsRef.current[i] = el;
             }}
-            className="group cursor-pointer"
+            className="group"
             style={{ clipPath: "inset(100% 0% 0% 0%)" }}
           >
-            <div className="relative mb-4 aspect-[3/4] overflow-hidden bg-cream-dark">
-              <Image
-                src={product.image}
-                alt={product.name}
-                fill
-                className="product-img object-cover transition-transform duration-[1.6s] ease-[cubic-bezier(0.19,1,0.22,1)] group-hover:scale-[1.06]"
-                sizes="(max-width: 768px) 50vw, 25vw"
-              />
-            </div>
+            <Link
+              href={product.href}
+              className="block cursor-pointer no-underline"
+            >
+              <div className="relative mb-4 aspect-[3/4] overflow-hidden bg-cream-dark">
+                <CatalogImage
+                  src={product.image}
+                  alt={product.name}
+                  fill
+                  className="product-img object-cover transition-transform duration-[1.6s] ease-[cubic-bezier(0.19,1,0.22,1)] group-hover:scale-[1.06]"
+                  sizes="(max-width: 768px) 50vw, 25vw"
+                />
+              </div>
 
-            <div className="product-info">
-              <p className="text-label tracking-[0.15em] text-charcoal">
-                {product.name}
-              </p>
-              <p className="text-label mt-1.5 text-warm-gray">{product.price}</p>
-            </div>
+              <div className="product-info">
+                <p className="text-label tracking-[0.15em] text-charcoal">
+                  {product.name}
+                </p>
+                <p className="text-label mt-1.5 text-warm-gray">{product.price}</p>
+              </div>
+            </Link>
           </div>
         ))}
       </div>

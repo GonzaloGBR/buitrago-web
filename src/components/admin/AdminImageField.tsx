@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { uploadProductImage } from "@/app/admin/actions/upload";
+import { AdminInput, AdminLabel } from "@/components/admin/AdminFormControls";
 
 type Props = {
   name: string;
@@ -36,16 +37,13 @@ export default function AdminImageField({
 
   return (
     <div className="space-y-2">
-      <label className="block text-[0.7rem] font-medium uppercase tracking-[0.12em] text-warm-gray">
-        {label}
-      </label>
+      <AdminLabel>{label}</AdminLabel>
       <input type="hidden" name={name} value={url} />
-      <input
+      <AdminInput
         type="text"
         value={url}
         onChange={(e) => setUrl(e.target.value)}
         required={required}
-        className="w-full rounded-sm border border-charcoal/15 bg-white px-3 py-2.5 font-sans text-sm text-charcoal outline-none focus:border-charcoal/40"
         placeholder="/collection-table.png o /uploads/…"
       />
       <div className="flex flex-wrap items-center gap-3">

@@ -19,64 +19,61 @@ export default function CategoriesSection({ categories }: Props) {
   const cardsRef = useRef<HTMLDivElement[]>([]);
 
   useEffect(() => {
+    const section = sectionRef.current;
+    const title = titleRef.current;
+    if (!section) return;
+
     const ctx = gsap.context(() => {
-      gsap.fromTo(
-        titleRef.current,
-        { y: 56, opacity: 0 },
-        {
-          y: 0,
-          opacity: 1,
-          duration: 1.35,
-          ease: "power3.out",
-          scrollTrigger: {
-            trigger: sectionRef.current,
-            start: "top 78%",
-          },
-        }
-      );
+      const cards = cardsRef.current.filter(Boolean) as HTMLDivElement[];
 
-      cardsRef.current.forEach((card, i) => {
-        if (!card) return;
+      const st = {
+        trigger: section,
+        start: "top 78%",
+        toggleActions: "play none none none" as const,
+      };
 
+      const tl = gsap.timeline({ scrollTrigger: st });
+
+      if (title) {
+        tl.fromTo(
+          title,
+          { y: 56, opacity: 0 },
+          { y: 0, opacity: 1, duration: 1.2, ease: "power3.out" },
+          0
+        );
+      }
+
+      cards.forEach((card) => {
         const imgEl = card.querySelector(".cat-img");
-
-        const tl = gsap.timeline({
-          scrollTrigger: {
-            trigger: card,
-            start: "top 88%",
-          },
-        });
-
         tl.fromTo(
           card,
           { clipPath: "inset(100% 0% 0% 0%)" },
           {
             clipPath: "inset(0% 0% 0% 0%)",
             duration: 1.35,
-            delay: i * 0.06,
             ease: "power3.inOut",
-          }
+          },
+          0
         );
-
         if (imgEl) {
           tl.fromTo(
             imgEl,
             { scale: 1.15 },
             { scale: 1, duration: 1.55, ease: "power2.out" },
-            "-=1.05"
+            0
           );
         }
       });
     }, sectionRef);
 
     return () => ctx.revert();
-  }, []);
+  }, [categories]);
 
   return (
     <section
       ref={sectionRef}
       id="categorías"
-      className="section-editorial section-y-loose"
+      className="section-editorial pt-12 pb-[4.5rem] md:pt-16 md:pb-[6.5rem]"
     >
       <div className="mb-12 md:mb-16">
         <span className="text-label mb-5 block text-warm-gray">

@@ -42,6 +42,28 @@ body {
   overflow-x: hidden;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  /* iOS: evita scroll horizontal por overscroll en gestos táctiles. */
+  overscroll-behavior-x: none;
+}
+
+/* Touch targets razonables: evita que los botones queden por debajo de 44x44px en táctil. */
+@media (pointer: coarse) {
+  button,
+  a[role="button"],
+  input[type="button"],
+  input[type="submit"] {
+    min-height: 2.75rem;
+  }
+}
+
+/* iOS: Safari hace zoom automático si el input tiene font-size < 16px al enfocarlo.
+   En viewport < 640px subimos el mínimo efectivo a 16px; sobre sm+ cada componente mantiene su tipografía. */
+@media (max-width: 639px) {
+  input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="color"]),
+  textarea,
+  select {
+    font-size: max(16px, 1em);
+  }
 }
 
 /* ─── Lenis ─── */
@@ -91,24 +113,6 @@ html.lenis body {
 img {
   -webkit-user-drag: none;
   user-select: none;
-}
-
-/* ─── Animation Utilities ─── */
-.clip-inset-hidden {
-  clip-path: inset(100% 0% 0% 0%);
-}
-
-.clip-inset-visible {
-  clip-path: inset(0% 0% 0% 0%);
-}
-
-.split-line {
-  overflow: hidden;
-}
-
-.split-line .line-inner {
-  display: inline-block;
-  transform: translateY(110%);
 }
 
 /* ─── Editorial Heading Styles (ritmo tipo showroom / Sol’ace) ─── */
@@ -210,35 +214,6 @@ img {
 .btn-editorial span {
   position: relative;
   z-index: 1;
-}
-
-/* ─── Divider ─── */
-.divider {
-  width: 100%;
-  height: 1px;
-  background-color: var(--color-sand);
-}
-
-/* ─── Parallax image container ─── */
-.parallax-img-container {
-  overflow: hidden;
-}
-
-.parallax-img-container img {
-  will-change: transform;
-}
-
-/* ─── Keyframes ─── */
-@keyframes scrollLine {
-  0% {
-    transform: translateY(-100%);
-  }
-  50% {
-    transform: translateY(0%);
-  }
-  100% {
-    transform: translateY(100%);
-  }
 }
 
 /* ─── Contact Button Variant ─── */

@@ -141,9 +141,10 @@ export async function updateProductAction(
 
 export async function deleteProductAction(
   productId: string,
-  _formData?: FormData
+  formData: FormData
 ): Promise<void> {
   await assertAdmin();
+  const returnCategoria = String(formData.get("returnCategoria") ?? "").trim();
   let slug: string | null = null;
   try {
     const p = await prisma.product.findUnique({
@@ -153,11 +154,19 @@ export async function deleteProductAction(
     slug = p?.categorySlug ?? null;
     await prisma.product.delete({ where: { id: productId } });
   } catch {
-    redirect("/admin/products?error=delete");
+    const q = returnCategoria
+      ? `?error=delete&categoria=${encodeURIComponent(returnCategoria)}`
+      : "?error=delete";
+    redirect(`/admin/products${q}`);
   }
   revalidatePath("/");
   if (slug) {
     revalidatePath(`/categoria/${slug}`);
   }
-  redirect("/admin/products?deleted=1");
+  const keep =
+    slug ?? (returnCategoria ? returnCategoria : null);
+  const q = keep
+    ? `?deleted=1&categoria=${encodeURIComponent(keep)}`
+    : "?deleted=1";
+  redirect(`/admin/products${q}`);
 }

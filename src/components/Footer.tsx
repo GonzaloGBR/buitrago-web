@@ -1,57 +1,23 @@
-"use client";
-
-import { useEffect, useRef } from "react";
-import gsap from "gsap";
-import { ScrollTrigger } from "gsap/ScrollTrigger";
-
-gsap.registerPlugin(ScrollTrigger);
-
 export default function Footer() {
-  const footerRef = useRef<HTMLElement>(null);
-
-  useEffect(() => {
-    const ctx = gsap.context(() => {
-      gsap.fromTo(
-        footerRef.current,
-        { opacity: 0, y: 12 },
-        {
-          opacity: 1,
-          y: 0,
-          duration: 1.1,
-          ease: "power2.out",
-          scrollTrigger: {
-            trigger: footerRef.current,
-            start: "top 92%",
-          },
-        }
-      );
-    }, footerRef);
-
-    return () => ctx.revert();
-  }, []);
-
   return (
-    <footer
-      ref={footerRef}
-      className="bg-charcoal border-t border-warm-gray/10 py-8 opacity-0"
-    >
-      <div className="section-editorial flex flex-col items-center justify-between gap-6 md:flex-row">
+    <footer className="border-t border-warm-gray/10 bg-charcoal py-8 pb-[max(2rem,env(safe-area-inset-bottom))]">
+      <div className="section-editorial flex flex-col items-center justify-between gap-5 text-center md:flex-row md:gap-6 md:text-left">
         <span className="heading-editorial text-lg text-cream/40">
           Buitrago
         </span>
-        <p className="text-label text-warm-gray/40 text-[9px] tracking-[0.3em]">
+        <p className="text-label text-[10px] tracking-[0.25em] text-warm-gray/50 sm:text-[10.5px] sm:tracking-[0.3em] md:text-[9px] md:text-warm-gray/40">
           © {new Date().getFullYear()} Buitrago — Carpintería Artesanal
         </p>
-        <div className="flex gap-6">
+        <div className="flex gap-5 sm:gap-6">
           <a
             href="#"
-            className="text-label text-warm-gray/40 text-[9px] hover:text-cream/60 transition-colors duration-500"
+            className="text-label text-[10px] text-warm-gray/50 transition-colors duration-500 hover:text-cream/60 md:text-[9px] md:text-warm-gray/40"
           >
             Privacidad
           </a>
           <a
             href="#"
-            className="text-label text-warm-gray/40 text-[9px] hover:text-cream/60 transition-colors duration-500"
+            className="text-label text-[10px] text-warm-gray/50 transition-colors duration-500 hover:text-cream/60 md:text-[9px] md:text-warm-gray/40"
           >
             Términos
           </a>

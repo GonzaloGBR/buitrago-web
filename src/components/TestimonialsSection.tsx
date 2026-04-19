@@ -52,30 +52,30 @@ export default function TestimonialsSection() {
 
   return (
     <section ref={sectionRef} className="section-editorial section-y-loose">
-      <div className="mb-20 md:mb-28">
-        <span className="text-label mb-5 block text-warm-gray">
+      <div className="mb-12 sm:mb-16 md:mb-28">
+        <span className="text-label mb-4 block text-warm-gray sm:mb-5">
           Testimonios
         </span>
-        <h2 className="heading-editorial text-4xl text-charcoal md:text-5xl">
+        <h2 className="heading-editorial text-[clamp(1.875rem,6.5vw,3rem)] text-charcoal md:text-5xl">
           Lo que dicen
           <br />
           <span className="text-warm-gray">nuestros clientes</span>
         </h2>
       </div>
 
-      <div className="grid grid-cols-1 gap-12 md:grid-cols-2 md:gap-20">
+      <div className="grid grid-cols-1 gap-10 md:grid-cols-2 md:gap-20">
         {testimonials.map((item, i) => (
           <div
             key={i}
             ref={(el) => {
               if (el) cardsRef.current[i] = el;
             }}
-            className="border-t border-sand pt-8 opacity-0"
+            className="border-t border-sand pt-6 opacity-0 sm:pt-8"
           >
-            <span className="heading-editorial mb-7 block text-6xl text-accent/25 md:text-8xl">
+            <span className="heading-editorial mb-5 block text-5xl text-accent/25 sm:mb-7 sm:text-6xl md:text-8xl">
               &ldquo;
             </span>
-            <p className="heading-editorial text-xl md:text-2xl text-charcoal leading-snug mb-8">
+            <p className="heading-editorial mb-6 text-lg leading-snug text-charcoal sm:mb-8 sm:text-xl md:text-2xl">
               {item.quote}
             </p>
             <div>
