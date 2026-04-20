@@ -1,16 +1,24 @@
 /**
  * Regla única de la intro (preloader + moodboard):
  *
- * Se reproduce **solo una vez** en la vida del documento, y **únicamente** si ese documento se cargó
- * como consecuencia de un **reload** (F5 / botón recargar) **estando en la home** (`/`).
+ * Se reproduce **solo una vez** en la vida del documento, y **únicamente** si ese documento se
+ * cargó directamente en la home (`/`) como:
+ *   1. Una **primera visita** — usuario tipea/pega la URL, toca un link externo, etc.
+ *      (`PerformanceNavigationTiming.type === "navigate"`).
+ *   2. Un **reload** explícito (F5 / botón recargar) estando en `/` (type === "reload").
  *
- * Toda navegación SPA posterior (click en Muebles desde `/contacto`, `router.back()`, atrás/adelante,
- * primera visita tipeando la URL, etc.) salta la intro.
+ * Se salta cuando:
+ *   - El tipo de navegación es `back_forward` (botón atrás/adelante del navegador).
+ *   - El documento inicial de la pestaña fue otra ruta (p. ej. `/contacto`) y después el usuario
+ *     navega SPA a la home: aunque `HomeClient` se monte, `initialDocumentPathname !== "/"` lo
+ *     descarta.
+ *   - Ya se reprodujo una vez en esta pestaña (flag `consumed`).
  *
  * Clave del diseño: usamos estado a **nivel de módulo** (no `sessionStorage`). Eso implica:
- *  - Se mantiene durante toda la vida de la pestaña aunque el componente `HomeClient` se remonte.
- *  - Se **borra automáticamente** cuando el navegador recarga el documento (F5), porque JS vuelve a
- *    evaluarse. Justo cuando queremos que la intro vuelva a considerarse.
+ *  - Se mantiene durante toda la vida de la pestaña aunque el componente `HomeClient` se remonte
+ *    (cualquier nav SPA posterior ve `consumed = true` → no reproduce).
+ *  - Se **borra automáticamente** cuando el navegador recarga el documento (F5), porque JS vuelve
+ *    a evaluarse. Justo cuando queremos que la intro vuelva a considerarse.
  */
 
 let decisionCache: boolean | null = null;
@@ -33,10 +41,25 @@ function computeDecision(): boolean {
     | undefined;
   if (!nav) return false;
 
-  if (nav.type !== "reload") return false;
+  /**
+   * Solo aceptamos las dos formas de "entrada real" al documento:
+   *  - "navigate": primera visita (tipear la URL, link externo, compartido por WhatsApp, etc.).
+   *  - "reload":   F5 / botón de recargar.
+   * Descartamos "back_forward" (botón atrás/adelante) y "prerender".
+   */
+  if (nav.type !== "reload" && nav.type !== "navigate") return false;
 
+  /**
+   * Exigimos que el documento se haya cargado originalmente en `/`. Esto evita reproducir la
+   * intro cuando el usuario entró primero a otra página (p. ej. `/contacto`) y llega a la home
+   * vía navegación SPA: aunque `HomeClient` se monte ahora, la entrada inicial no fue la home.
+   */
   if (initialDocumentPathname(nav) !== "/") return false;
 
+  /**
+   * Y que en ESTE momento estemos efectivamente en `/`. Protege de casos raros donde el usuario
+   * ya cambió de ruta entre el parseo del módulo y el primer render.
+   */
   const currentPath = window.location.pathname.replace(/\/$/, "") || "/";
   return currentPath === "/";
 }
